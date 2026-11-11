@@ -1,0 +1,6 @@
+[core]
+    site_cache_dir = .dvc/tmp/site-cache
+    autostage = false
+    analytics = false
+[cache]
+    type = copy

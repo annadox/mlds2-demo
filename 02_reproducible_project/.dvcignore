@@ -1,0 +1,6 @@
+# Generated run outputs are deliberately outside data versioning.
+outputs/
+.venv/
+.cache/
+# These are Git-versioned copies of pointers, not extra DVC stage definitions.
+experiments/snapshots/

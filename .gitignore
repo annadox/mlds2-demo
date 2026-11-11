@@ -1,0 +1,14 @@
+# Local notebook data, environments and generated results.
+01_notebook/*
+!01_notebook/electricity_forecasting.ipynb
+**/.ipynb_checkpoints/
+**/.plot-cache/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.venv/
+.uv-cache/
+.jupyter-runtime/
+
+
+presentation/

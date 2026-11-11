@@ -1,0 +1,13 @@
+source_url: https://archive.ics.uci.edu/static/public/321/electricityloaddiagrams20112014.zip
+source_archive: data/raw/LD2011_2014.txt.zip
+source_member: LD2011_2014.txt
+customer: MT_158
+# End-labelled intervals: 00:15, 00:30, 00:45, 01:00 -> hour ending 01:00.
+start: "2014-01-01T01:00:00"
+end: "2015-01-01T01:00:00"  # Exclusive; includes all 8,760 hours of 2014.
+frequency: 1h
+aggregation: mean
+timestamp_policy: source_portuguese_wall_clock
+zero_policy: preserve_source_values
+output: data/prepared/hourly.csv
+manifest: data/prepared/manifest.json

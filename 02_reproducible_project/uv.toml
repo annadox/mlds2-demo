@@ -1,0 +1,3 @@
+# Keep disposable package/build caches inside the project.
+cache-dir = ".cache/uv"
+

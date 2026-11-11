@@ -1,0 +1,14 @@
+{
+  "corrections": [
+    {
+      "description": "Synthetic sensitivity scenario: +25% adjustment to training-period meter readings; not an upstream UCI correction.",
+      "end_exclusive": "2014-06-15T01:00:00",
+      "factor": 1.25,
+      "rows": 336,
+      "start": "2014-06-01T01:00:00"
+    }
+  ],
+  "dataset_sha256": "a9171f44ae9891b5145bb60fa30f5954bd7cc1fe621052f4519f185f30fa1b3a",
+  "manifest_sha256": "5a4523f0662e74b905ed834640cea3bcd23c992c62a87b10da2ec15df0982ae6",
+  "name": "v2"
+}

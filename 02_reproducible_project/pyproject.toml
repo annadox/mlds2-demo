@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "electricity-demo"
+version = "0.1.0"
+description = "Configuration-driven electricity load forecasting with reproducible experiments"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pandas>=2.2,<3",
+  # pandas 2.x emits timedelta deprecations with NumPy 2.4+.
+  "numpy>=2,<2.4",
+  "scikit-learn>=1.6,<2",
+  "matplotlib>=3.9,<4",
+  "pyyaml>=6,<7",
+  "joblib>=1.4,<2",
+  "dvc>=3.60,<4",
+  "rich>=13,<16",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "nbclient>=0.10,<1", "nbformat>=5.10,<6", "ipykernel>=6,<8"]
+notebook = ["jupyterlab>=4,<5"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/electricity_demo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

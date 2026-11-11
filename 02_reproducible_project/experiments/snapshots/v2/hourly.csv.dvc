@@ -1,0 +1,5 @@
+outs:
+- md5: b7a27a57c7242c0378737394458b2bd3
+  size: 300433
+  hash: md5
+  path: hourly.csv
