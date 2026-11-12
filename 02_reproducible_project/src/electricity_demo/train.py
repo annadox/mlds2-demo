@@ -39,6 +39,37 @@ def prediction_frame(table: pd.DataFrame, predicted, split: str, fold: int | Non
     })
 
 
+def evaluate_candidate(base, development: pd.DataFrame, folds: list, params: dict, on_fold=None):
+    """Evaluate one configuration; shared by the original grid and Optuna.
+
+    Each fitted pipeline only sees that fold's training rows. The optional
+    observer records completed folds without controlling their evaluation.
+    """
+    feature_names = list(development.columns.drop("target"))
+    X, y = development[feature_names], development["target"]
+    fold_metrics, fold_predictions = [], []
+    for fold, (train_idx, validation_idx) in enumerate(folds, start=1):
+        started = time.perf_counter()
+        estimator = clone(base).set_params(**params)
+        estimator.fit(X.iloc[train_idx], y.iloc[train_idx])
+        validation = development.iloc[validation_idx]
+        result = prediction_frame(validation, estimator.predict(validation[feature_names]), "cv", fold)
+        measured = {
+            "fold": fold,
+            "train_start": development.index[train_idx[0]].isoformat(),
+            "train_end": development.index[train_idx[-1]].isoformat(),
+            "validation_start": validation.index[0].isoformat(),
+            "validation_end": validation.index[-1].isoformat(),
+            "elapsed_seconds": time.perf_counter() - started,
+            **compare_predictions(result),
+        }
+        fold_predictions.append(result)
+        fold_metrics.append(measured)
+        if on_fold is not None:
+            on_fold(measured)
+    return fold_metrics, fold_predictions
+
+
 def run_training(config_path: str | Path, final_test: bool = False, output_root: Path | None = None) -> Path:
     started = time.perf_counter()
     config = load_training_config(config_path)
@@ -69,27 +100,11 @@ def run_training(config_path: str | Path, final_test: bool = False, output_root:
     best_folds = []
     search_records = []
     for candidate_number, params in enumerate(candidates, 1):
-        fold_metrics, fold_predictions = [], []
         candidate_started = time.perf_counter()
-        for fold, (train_idx, validation_idx) in enumerate(folds, start=1):
-            fold_started = time.perf_counter()
-            console.print(f"[dim]Configuration {candidate_number}/{len(candidates)} | fold {fold}/{len(folds)} | fitting...[/dim]")
-            estimator = clone(base).set_params(**params)
-            estimator.fit(X.iloc[train_idx], y.iloc[train_idx])
-            validation = development.iloc[validation_idx]
-            predicted = estimator.predict(validation[feature_names])
-            result = prediction_frame(validation, predicted, "cv", fold)
-            fold_predictions.append(result)
-            measured = compare_predictions(result)
-            fold_metrics.append({
-                "fold": fold,
-                "train_start": development.index[train_idx[0]].isoformat(),
-                "train_end": development.index[train_idx[-1]].isoformat(),
-                "validation_start": validation.index[0].isoformat(),
-                "validation_end": validation.index[-1].isoformat(),
-                **measured,
-            })
-            console.print(f"  MAE [bold]{measured['model']['mae_kw']:.3f} kW[/bold] | RMSE {measured['model']['rmse_kw']:.3f} kW | {time.perf_counter() - fold_started:.1f}s")
+        console.print(f"[dim]Configuration {candidate_number}/{len(candidates)} | fitting {len(folds)} chronological folds...[/dim]")
+        fold_metrics, fold_predictions = evaluate_candidate(base, development, folds, params)
+        for measured in fold_metrics:
+            console.print(f"  Fold {measured['fold']}: MAE [bold]{measured['model']['mae_kw']:.3f} kW[/bold] | RMSE {measured['model']['rmse_kw']:.3f} kW | {measured['elapsed_seconds']:.1f}s")
         scores = [fold["model"]["mae_kw"] for fold in fold_metrics]
         mean_score = float(np.mean(scores))
         search_records.append({
@@ -98,6 +113,7 @@ def run_training(config_path: str | Path, final_test: bool = False, output_root:
             "mean_rmse_kw": float(np.mean([fold["model"]["rmse_kw"] for fold in fold_metrics])),
             "elapsed_seconds": time.perf_counter() - candidate_started,
             **{f"fold_{fold['fold']}_mae_kw": fold["model"]["mae_kw"] for fold in fold_metrics},
+            **{f"fold_{fold['fold']}_rmse_kw": fold["model"]["rmse_kw"] for fold in fold_metrics},
         })
         if mean_score < best_score:
             best_score, best_params = mean_score, params

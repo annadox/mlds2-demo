@@ -13,6 +13,8 @@ Both projects use customer `MT_158`, with quarter-hour readings aggregated to ho
 
 See [workflow.md](workflow.md) for setup, training, dataset version recovery and result inspection.
 
+Presenter 2: [slide plan and handoffs](docs/PRESENTER_2_SLIDE_PLAN.md), [enhanced demo and screenshot guide](docs/MLFLOW_SCREENSHOT_GUIDE.md), and [scope review](docs/MLFLOW_EXTENSION_REVIEW.md). The optional workflow adds nested Optuna trials, fold metric curves, model comparisons, dataset lineage, registry versions/aliases and a next-hour inference example using the shared training code. The [introductory two-run demo](docs/MLFLOW_DEMO.md) remains available.
+
 The notebook requires pandas, scikit-learn and matplotlib. Open it with a Python kernel whose working directory is `01_notebook`; package installation instructions are included in the notebook. Its CSV/ZIP/model/plot files are generated locally and ignored by Git.
 
 The reproducible project uses DVC pointers to track source and prepared data. Dataset contents, environments, caches and generated models remain outside ordinary Git history. Configure a persistent DVC remote before sharing data across machines.

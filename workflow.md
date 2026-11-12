@@ -2,7 +2,7 @@
 
 ## Notebook
 
-Open `01_notebook/electricity_forecasting.ipynb` with a Python kernel containing pandas, scikit-learn, matplotlib and PyTorch. Run from the notebook's directory. The first execution downloads the source archive and creates `electricity.csv`; subsequent executions reuse that local file.
+Open `01_notebook/electricity_forecasting.ipynb` with a Python kernel containing pandas, scikit-learn and matplotlib. Run from the notebook's directory. The first execution downloads the source archive and creates `electricity.csv`; subsequent executions reuse that local file.
 
 The notebook contains data loading, hourly aggregation, exploration, lag and rolling features, and separate training cells for Ridge and random forest. It reads and writes its own files independently of the packaged project.
 
