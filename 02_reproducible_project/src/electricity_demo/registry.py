@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 import mlflow
 
-from .tracking import DEFAULT_EXPERIMENT, DEFAULT_STORE, configure_store
+from .store import DEFAULT_EXPERIMENT, DEFAULT_STORE, configure_store
 from .config import project_path, write_json
 
 

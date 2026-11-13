@@ -7,23 +7,24 @@ name = "electricity-demo"
 version = "0.1.0"
 description = "Configuration-driven electricity load forecasting with reproducible experiments"
 requires-python = ">=3.12,<3.13"
+# Runtime dependencies of the installable package: enough to build features and predict.
 dependencies = [
   "pandas>=2.2,<3",
   # pandas 2.x emits timedelta deprecations with NumPy 2.4+.
   "numpy>=2,<2.4",
   "scikit-learn>=1.6,<2",
-  "matplotlib>=3.9,<4",
   "pyyaml>=6,<7",
-  "joblib>=1.4,<2",
-  "dvc>=3.60,<4",
-  "rich>=13,<16",
 ]
 
 [project.optional-dependencies]
+# Registry access and inference from a registered model.
 tracking = ["mlflow>=3.18,<4"]
+# Experiment searches with nested trial runs.
 tuning = ["mlflow>=3.18,<4", "optuna>=4.5,<6"]
 
 [dependency-groups]
+# Training-only tools (plots, console output, data versioning). Not needed by a consumer of the model.
+train = ["matplotlib>=3.9,<4", "rich>=13,<16", "dvc>=3.60,<4"]
 dev = ["pytest>=8,<10", "nbclient>=0.10,<1", "nbformat>=5.10,<6", "ipykernel>=6,<8"]
 notebook = ["jupyterlab>=4,<5"]
 
@@ -33,3 +34,7 @@ packages = ["src/electricity_demo"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[tool.uv]
+# `uv sync` in this repository installs the training tools and test dependencies by default.
+default-groups = ["train", "dev"]

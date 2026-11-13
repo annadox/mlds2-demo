@@ -8,7 +8,7 @@ optuna = pytest.importorskip("optuna", reason="Install the tuning extra for sear
 mlflow = pytest.importorskip("mlflow")
 
 from electricity_demo.config import load_training_config
-from electricity_demo.lecture_demo import log_baseline, select_candidate
+from electricity_demo.selection import log_baseline, select_candidate
 from electricity_demo.predict import predict_next
 from electricity_demo.registry import assign_alias, register_run
 from electricity_demo.tracking import configure_store
@@ -41,7 +41,9 @@ def test_trials_fold_histories_selection_and_rollback(training_config, tmp_path,
     assert all(child.info.status == "FINISHED" for child in children)
     assert selection["selected_trial_run_id"] in {child.info.run_id for child in children}
     assert parent.data.tags["selected_trial_run_id"] == selection["selected_trial_run_id"]
-    assert selection["repeat_cv_check"]["passed"]
+    selected_child = client.get_run(selection["selected_trial_run_id"])
+    # The packaged parent reuses the winning trial's CV results instead of re-running them.
+    assert parent.data.metrics["cv_mae_kw"] == selected_child.data.metrics["cv_mae_kw"]
     for child in children:
         history = sorted(client.get_metric_history(child.info.run_id, "fold_mae_kw"), key=lambda metric: metric.step)
         assert [metric.step for metric in history] == [1, 2, 3]

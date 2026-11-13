@@ -1,17 +1,16 @@
-"""Causal features for a new one-step forecast after each observed hour."""
+"""One causal feature definition, used for training rows and for the next-hour inference row."""
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from .prepare import validate_hourly
 
 
-def build_features(frame: pd.DataFrame, config: dict) -> pd.DataFrame:
-    validate_hourly(frame)
-    data = frame.set_index("timestamp")
-    load = data["load_kw"]
-    features = pd.DataFrame(index=data.index)
+def feature_table(load: pd.Series, config: dict) -> pd.DataFrame:
+    """Features for every timestamp in ``load``; each row uses only earlier observations."""
+    features = pd.DataFrame(index=load.index)
     for lag in sorted(config["lags"]):
         features[f"lag_{lag}h"] = load.shift(lag)
     for window in config["rolling_windows"]:
@@ -19,6 +18,14 @@ def build_features(frame: pd.DataFrame, config: dict) -> pd.DataFrame:
         features[f"mean_{window}h"] = load.shift(1).rolling(window, min_periods=window).mean()
     features["hour"] = features.index.hour
     features["weekday"] = features.index.dayofweek
+    return features
+
+
+def build_features(frame: pd.DataFrame, config: dict) -> pd.DataFrame:
+    """Training/evaluation rows: features plus the observed target, without incomplete history."""
+    validate_hourly(frame)
+    load = frame.set_index("timestamp")["load_kw"]
+    features = feature_table(load, config)
     features["target"] = load
     return features.dropna()
 
@@ -28,7 +35,7 @@ def numeric_columns(config: dict) -> list[str]:
 
 
 def build_next_features(history: pd.DataFrame, feature_spec: dict) -> pd.DataFrame:
-    """Build one next-hour row using observed history only, with no future target."""
+    """The next-hour inference row, computed by the same feature_table as training; no future target."""
     validate_hourly(history)
     if feature_spec["horizon_hours"] != 1:
         raise ValueError("Only next-hour forecasts are supported.")
@@ -36,13 +43,14 @@ def build_next_features(history: pd.DataFrame, feature_spec: dict) -> pd.DataFra
     required = max(config["lags"] + config["rolling_windows"])
     if len(history) < required:
         raise ValueError(f"Need at least {required} consecutive observed hours.")
-    target_time = history["timestamp"].iloc[-1] + pd.Timedelta(hours=1)
-    load = history["load_kw"]
-    values = {f"lag_{lag}h": load.iloc[-lag] for lag in sorted(config["lags"])}
-    values.update({f"mean_{window}h": load.iloc[-window:].mean() for window in config["rolling_windows"]})
-    values.update(hour=target_time.hour, weekday=target_time.dayofweek)
-    if set(values) != set(feature_spec["column_order"]):
+    load = history.set_index("timestamp")["load_kw"].astype("float64")
+    target_time = load.index[-1] + pd.Timedelta(hours=1)
+    # The unknown target is a placeholder: every feature is shifted by at least one hour.
+    extended = pd.concat([load, pd.Series([np.nan], index=pd.DatetimeIndex([target_time], name=load.index.name))])
+    row = feature_table(extended, config).iloc[[-1]]
+    if set(row.columns) != set(feature_spec["column_order"]):
         raise ValueError("Feature specification does not match the supported feature definitions.")
-    return pd.DataFrame([values], index=pd.DatetimeIndex([target_time], name="timestamp"))[
-        feature_spec["column_order"]
-    ].astype("float64")
+    row = row[feature_spec["column_order"]].astype("float64")
+    if row.isna().to_numpy().any():
+        raise ValueError("History is too short for the configured features.")
+    return row

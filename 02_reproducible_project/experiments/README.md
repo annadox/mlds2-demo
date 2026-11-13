@@ -37,6 +37,8 @@ Copy-Item -LiteralPath experiments/snapshots/v2/manifest.json.dvc -Destination d
 uv run --locked dvc checkout data/prepared/hourly.csv.dvc data/prepared/manifest.json.dvc
 ```
 
+On macOS/Linux, replace the two `Copy-Item` lines with `cp experiments/snapshots/v2/hourly.csv.dvc experiments/snapshots/v2/manifest.json.dvc data/prepared/`.
+
 Restore v1 afterwards using the helper. Do not use `--force` to bypass unknown local data edits.
 
 ## Sharing and Git history

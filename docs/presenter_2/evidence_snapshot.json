@@ -1,0 +1,194 @@
+{
+  "prepared_on": "2026-11-13",
+  "original_execution_date": "2026-11-12",
+  "batch_id": "20261112T181949Z-424799",
+  "experiment": "electricity-mt158-lecture",
+  "comparison_group": "3e2ed10133c2b0791a5440187f8104176d3547f4420ee863c45d2391bd19cacf",
+  "source_output_receipt": "02_reproducible_project/outputs/lecture_latest.json",
+  "baseline": {
+    "comparison_group": "3e2ed10133c2b0791a5440187f8104176d3547f4420ee863c45d2391bd19cacf",
+    "cv_mae_kw": 30.123865360539977,
+    "cv_rmse_kw": 44.60590914134823,
+    "fold_mae_kw": [
+      27.058495273112506,
+      29.96044014196518,
+      33.35266066654226
+    ],
+    "label": "Same hour yesterday",
+    "run_id": "512fec84a4294ab192b5aa879ae867e6"
+  },
+  "models": [
+    {
+      "label": "Ridge (grid)",
+      "run_id": "9b8e8f01b6514f158e04313528445dcd",
+      "model_id": "m-1fab52319f9c4282bdf863d9c4bb1bf5",
+      "registered_version": "1",
+      "cv_mae_kw": 9.662939856764034,
+      "cv_rmse_kw": 13.501336959752308,
+      "fold_mae_kw": [
+        8.39310101352553,
+        8.69016788749769,
+        11.905550669268878
+      ],
+      "selected_trial": 2,
+      "selected_trial_run_id": "b6075f92e9464412b818e91553ec5f36",
+      "selected_params": {
+        "alpha": 10.0
+      },
+      "repeat_cv_check": {
+        "absolute_difference_kw": 6.281943420560765e-06,
+        "atol": 1e-06,
+        "passed": true,
+        "repeated_mean_fold_mae_kw": 9.662939856764034,
+        "rtol": 1e-05,
+        "trial_mean_fold_mae_kw": 9.662933574820613
+      },
+      "model_checks": {
+        "atol": 1e-09,
+        "checked_example_rows": 5,
+        "missing_feature_rejected": true,
+        "prediction_roundtrip_passed": true,
+        "rtol": 1e-09,
+        "scope": "Serialization and input-contract smoke checks, not production approval."
+      }
+    },
+    {
+      "label": "Random forest (Optuna)",
+      "run_id": "7d5d3f2547714e2dabf8333ad7123157",
+      "model_id": "m-466a99dd9e524ab4a7a2911b9bc1099c",
+      "registered_version": "2",
+      "cv_mae_kw": 8.390399519597945,
+      "cv_rmse_kw": 13.14625813099267,
+      "fold_mae_kw": [
+        6.786902928494065,
+        7.9508564103950405,
+        10.433439219904729
+      ],
+      "selected_trial": 9,
+      "selected_trial_run_id": "d3d94f35e3e04aa886e9f8fe2c533cd2",
+      "selected_params": {
+        "max_depth": 15,
+        "max_features": 0.6,
+        "min_samples_leaf": 7
+      },
+      "repeat_cv_check": {
+        "absolute_difference_kw": 0.0,
+        "atol": 1e-06,
+        "passed": true,
+        "repeated_mean_fold_mae_kw": 8.390399519597944,
+        "rtol": 1e-05,
+        "trial_mean_fold_mae_kw": 8.390399519597944
+      },
+      "model_checks": {
+        "atol": 1e-09,
+        "checked_example_rows": 5,
+        "missing_feature_rejected": true,
+        "prediction_roundtrip_passed": true,
+        "rtol": 1e-09,
+        "scope": "Serialization and input-contract smoke checks, not production approval."
+      }
+    }
+  ],
+  "prediction": {
+    "model_uri": "models:/electricity-mt158-lecture/2",
+    "predicted_kw": 131.9840938586937,
+    "prediction_origin": "2014-11-01T00:00:00",
+    "requested_alias": "champion",
+    "source_run_id": "7d5d3f2547714e2dabf8333ad7123157",
+    "target_timestamp": "2014-11-01T01:00:00",
+    "timestamp_policy": "source Portuguese wall clock"
+  },
+  "alias_events": [
+    {
+      "alias": "champion",
+      "created_utc": "2026-11-12T18:21:17.169903+00:00",
+      "name": "electricity-mt158-lecture",
+      "new_version": "2",
+      "previous_version": null,
+      "reason": "Lowest development CV MAE among compatible completed model runs, with an improvement over the baseline.",
+      "scope": "Local model-reference change; no running service is deployed or reloaded.",
+      "source_run_id": "7d5d3f2547714e2dabf8333ad7123157"
+    },
+    {
+      "alias": "champion",
+      "created_utc": "2026-11-12T18:21:17.382792+00:00",
+      "name": "electricity-mt158-lecture",
+      "new_version": "1",
+      "previous_version": 2,
+      "reason": "Illustrative local rollback to a comparison version; no production service exists.",
+      "scope": "Local model-reference change; no running service is deployed or reloaded.",
+      "source_run_id": "9b8e8f01b6514f158e04313528445dcd"
+    },
+    {
+      "alias": "champion",
+      "created_utc": "2026-11-12T18:21:17.535467+00:00",
+      "name": "electricity-mt158-lecture",
+      "new_version": "2",
+      "previous_version": 1,
+      "reason": "Restore the validation-selected champion after the local rollback illustration.",
+      "scope": "Local model-reference change; no running service is deployed or reloaded.",
+      "source_run_id": "7d5d3f2547714e2dabf8333ad7123157"
+    }
+  ],
+  "api_verification": {
+    "verified_through": "http://127.0.0.1:5000",
+    "finished_runs": 16,
+    "trial_runs": 13,
+    "fold_points_per_metric_per_run": 3,
+    "dataset_inputs_per_run": 2,
+    "test_metrics_absent": true,
+    "registry_trial_lineage_verified": true,
+    "champion_version": "2"
+  },
+  "history_contract": {
+    "columns": [
+      "timestamp",
+      "load_kw"
+    ],
+    "minimum_consecutive_hourly_rows": 168,
+    "model_feature_count": 29,
+    "horizon_hours": 1,
+    "timestamp_policy": "source Portuguese wall clock"
+  },
+  "assets": {
+    "evaluation_cost.png": {
+      "sha256": "1fcfd1529627aa38799188425260e5c032ec4351965f4248e05f3a89414931ec",
+      "bytes": 54321,
+      "kind": "analysis figure from observed results"
+    },
+    "fold_comparison.png": {
+      "sha256": "ebbaa9855a810644e77bd63f4dd11e07a4ab6c6afec04736dc058c8f94bc55c9",
+      "bytes": 66952,
+      "kind": "analysis figure from observed results"
+    },
+    "model_comparison.png": {
+      "sha256": "8bcbaa226bb052278f48148c2c919c2045ceff4455e9e00886391ab0656164d7",
+      "bytes": 51587,
+      "kind": "analysis figure from observed results"
+    },
+    "random_forest_diagnostics.png": {
+      "sha256": "95654178237432ac3e701eaf4aa448f3261c576731b7b7bc4009a1b40b333669",
+      "bytes": 166410,
+      "kind": "analysis figure from observed results"
+    },
+    "random_forest_forecast.png": {
+      "sha256": "713c1da340b9fac7ae1daf977895b46b7a5cc580b4b7615fcc4a18ed9403d29b",
+      "bytes": 261175,
+      "kind": "analysis figure from observed results"
+    },
+    "random_forest_hyperparameters.png": {
+      "sha256": "adc0e780f35db5e67c411419ceec34783bf67907d465fbce17f94635ad65737e",
+      "bytes": 63043,
+      "kind": "analysis figure from observed results"
+    },
+    "random_forest_optimization.png": {
+      "sha256": "03b4dae4de7df9e72ebf67ee46db6585f801319e2b26fba8fa3962cf20275308",
+      "bytes": 105549,
+      "kind": "analysis figure from observed results"
+    }
+  },
+  "ui_screenshots_captured": true,
+  "ui_capture_date": "2026-11-13",
+  "presentation_refined_on": "2026-11-13",
+  "recorded_source_batch_preserved": true
+}

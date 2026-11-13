@@ -1,126 +1,120 @@
-# MLflow lecture demo
+# MLflow demo: tracking, registry and model retrieval
 
-This is the introductory two-run workflow. For the presentation, use the [enhanced demo and screenshot guide](MLFLOW_SCREENSHOT_GUIDE.md): it adds nested Optuna trials, native fold curves, parameter comparisons, dataset lineage and a recorded alias-change illustration. Install its `tuning` extra when using that workflow.
+How MLflow is added to the existing electricity forecasting project, how to regenerate the evidence used in Presenter 2's slides, and how to read what the MLflow UI shows. The recorded IDs and scores of the batch used in the slides are in [MLFLOW_ENHANCED_RESULTS.md](MLFLOW_ENHANCED_RESULTS.md).
 
-This extends Presenter 1's existing training function. The model, features, chronological folds and metrics come from the same code. The added commands manage experiment records and the fitted model's downstream identity.
+MLflow wraps Presenter 1's training code; it does not replace it. Model, features, chronological folds and metrics come from the same `train` functions (`load_development`, `evaluate_candidate`, `fit_and_evaluate`, `save_run`); `train.py` itself never imports MLflow. MLflow records executions and gives the selected fitted pipeline a retrievable identity. No live training or service is needed on stage.
 
-The [recorded execution](DEMO_RESULTS_2026-11-12.md) contains the completed local run IDs, observed scores, registry versions and prediction. Use those references when capturing the current demo.
+## Setup
 
-## 1. Setup and data
-
-From the repository root, in macOS/Linux:
+From the repository root (macOS/Linux shown; in PowerShell `cd` works the same):
 
 ```bash
 cd 02_reproducible_project
-uv sync --locked --extra tracking
-uv run --locked --extra tracking python -m electricity_demo.prepare
+uv sync --locked --extra tuning
+uv run --locked --extra tuning python -m electricity_demo.prepare   # only on a fresh checkout
 ```
 
-In PowerShell, use `Set-Location 02_reproducible_project` for the first command. All subsequent `uv run` commands are the same. Preparation downloads the public source once and keeps the original data outside Git. The current lock resolves MLflow 3.18.0.
+Two optional extras exist: `tracking` (MLflow only) and `tuning` (MLflow + Optuna, needed for the lecture batch). Presenter 1's untracked commands work without either. Pass the same `--extra` on every `uv run`, otherwise uv re-syncs the environment without the optional packages. The lock resolves MLflow 3.18.0.
 
-The `tracking` extra is optional. Presenter 1 can continue using the original training command without it. Use `--extra tracking` consistently for this demo, because plain `uv run` can synchronize the environment without the optional packages.
+The store is local: SQLite at `.mlflow/mlflow.db`, artifacts under `.mlflow/artifacts`, both ignored by Git. Paths are absolute to this machine, so teammates should regenerate the workflow rather than copy the database.
 
-## 2. The connection to Presenter 1
-
-Presenter 1's command:
+## Lecture workflow (used for the slides)
 
 ```bash
-uv run --locked python -m electricity_demo.train --config configs/ridge.yaml
+uv run --locked --extra tuning python scripts/lecture_demo.py --demonstrate-rollback
 ```
 
-Your tracked version:
+In experiment `electricity-mt158-lecture` this creates, under one `lecture_batch` tag:
+
+```text
+seasonal-naive-reference            run_kind=baseline
+ridge-grid-study                    run_kind=study  (refitted + logged model)
+  ridge-trial-00 … ridge-trial-02   run_kind=trial  (alpha 0.1 / 1 / 10)
+random_forest-tpe-study             run_kind=study  (refitted + logged model)
+  random_forest-trial-00 … -09      run_kind=trial  (seeded TPE; trial 0 = original forest)
+```
+
+Search spaces are in `configs/tuning.yaml`. Trials record parameters, CV metrics, fold boundaries and dataset inputs. Only each family's selected configuration is refitted on the development period and packaged on its parent run, which links to its winning trial. The parent reuses the winning trial's fold results; only the final development refit runs again, so the parent's CV metrics equal the selected trial's. (The recorded 12 November batch predates this and re-ran CV once with an agreement check.)
+
+The script then compares the compatible parent runs and the baseline with `selection.select_candidate` (the selection rule as code), writes `lecture/selection_decision.json` (rejecting unfinished, incompatible or baseline-inferior candidates), registers both families under `electricity-mt158-lecture`, assigns `champion` to the winner and, with `--demonstrate-rollback`, temporarily moves the alias to the other version and back, verifying the restored prediction. The receipt is `outputs/lecture_latest.json`; figures and receipts go to `outputs/lecture-<batch>/presentation_assets/`. A single family can be searched with `python -m electricity_demo.tune --config configs/random_forest.yaml`.
+
+## Introductory two-run workflow
+
+The smaller step-by-step path, in experiment `electricity-mt158-hourly`, uses the separate commands that the lecture workflow combines:
 
 ```bash
 uv run --locked --extra tracking python -m electricity_demo.tracking --config configs/ridge.yaml --run-name ridge-search
 uv run --locked --extra tracking python -m electricity_demo.tracking --config configs/random_forest.yaml --run-name forest-depth-10
+uv run --locked --extra tracking python -m electricity_demo.registry --run-id SELECTED_RUN_ID --name electricity-mt158-hourly --alias champion --reason "Lowest development CV MAE among compatible runs; baseline and folds inspected."
+uv run --locked --extra tracking python -m electricity_demo.predict --history outputs/SELECTED_OUTPUT_DIRECTORY/history.csv
 ```
 
-`tracking.run_tracked_training` opens an MLflow run and calls the original `train.run_training`. It reads that execution's output files, logs explicit validation metrics and effective fitted parameters, packages the pipeline and verifies a prediction round trip. One run contains the entire execution, including its CV folds, any parameter search and final development refit.
+`tracking.run_tracked_training` opens one MLflow run, calls `train.fit_and_evaluate` and `train.save_run`, then logs the in-memory result: validation metrics, effective fitted parameters (the selected alpha, not the YAML's starting value) and artifacts, packages the pipeline and verifies a reload. One run covers the whole execution, including its folds, any grid search and the final development refit. `outputs/<execution>/tracking.json` records the run ID, model URI and store. Failed training or logging leaves the run marked FAILED. Registration requires a finished run with a verified model round trip; each invocation creates a new version. Omit `--alias` for a comparison candidate.
 
-The local `outputs/<execution>/tracking.json` receipt contains the MLflow run ID, logged-model URI/ID, experiment ID and store URI. Keep it with the screenshots. Failed training or logging leaves the MLflow run marked FAILED.
-
-## 3. Open the Tracking UI
-
-Run from `02_reproducible_project` in a separate terminal:
+## Opening the UI
 
 ```bash
-uv run --locked --extra tracking mlflow ui --backend-store-uri sqlite:///.mlflow/mlflow.db --host 127.0.0.1 --port 5050
+uv run --locked --extra tuning mlflow ui --backend-store-uri sqlite:///.mlflow/mlflow.db --host 127.0.0.1 --port 5050
 ```
 
-Open http://127.0.0.1:5050 and select `electricity-mt158-hourly`. The trainer uses the absolute path to this same database, independent of its caller's working directory. Artifact paths are absolute local file URIs inside `.mlflow/artifacts`. This store is for this machine. A teammate should rerun the workflow locally rather than copy a database containing another machine's absolute paths.
+Open http://127.0.0.1:5050 (on macOS port 5000 is taken by AirPlay/AirTunes). Reuse a running server rather than starting a second one.
 
-Show these run-table columns:
+Filter one batch and exclude preliminary attempts:
 
-- `model_type`, `model.alpha` or `model.max_depth`
-- `cv_mae_kw`, `cv_rmse_kw`, `cv_baseline_mae_kw`
-- `cv_std_fold_mae_kw`
-- `comparison_group` and `snapshot` when checking comparability
+```text
+tags.lecture_batch = 'BATCH_ID' and attributes.status = 'FINISHED'
+```
 
-Filter to FINISHED runs with identical `comparison_group`. Select the lowest development CV MAE after inspecting the baseline and fold metrics. Do not use the notebook's scores or final-test results to rank these candidates.
+Add `tags.run_kind = 'study'`, `'trial'` or `'baseline'` to select roles, and `tags.model_family = 'random_forest'` for forest trials. Expand parent runs to see children; a filter alone may not expand the tree. Never mix runs with different `comparison_group`, and do not rank parent and trial rows together as independent procedures.
 
-The Ridge YAML starts with alpha 1.0 and searches a grid. The logged `model.alpha` is the selected fitted alpha; the initial config and full candidate table remain in artifacts. `cv_rmse_kw` is pooled across validation predictions. The candidate-table column `mean_rmse_kw` is an average of fold RMSEs and need not have the same value.
+## What each view shows
 
-## 4. Inspect a run and its model
+| View | What to show | How to read it |
+| --- | --- | --- |
+| Experiment / run table | Run name, `model_type`, `model.alpha` / `model.max_depth` / `model.min_samples_leaf`, `cv_mae_kw`, `cv_rmse_kw`, `cv_std_fold_mae_kw` | Experiment = common task; parent = search; child = candidate configuration |
+| Compare runs | Two study parents plus baseline, sorted by `cv_mae_kw` | Metrics support a decision only when data, targets and protocol agree |
+| `fold_mae_kw`, `fold_rmse_kw` (x = Step) | Steps 1–3 are chronological validation windows | Not epochs or a learning curve; fold std is descriptive, not a confidence interval |
+| `trial_objective_mae_kw`, `best_so_far_mae_kw` on the forest parent | Step = trial number from 0 | Ten trials show search behaviour, not convergence; a flat curve is legitimate |
+| Forest-trial scatter / parallel coordinates | Depth, leaf size, feature fraction vs CV MAE | Ten trials do not establish robust parameter importance |
+| Dataset inputs | `electricity-development`, `electricity-validation`, digest, schema, source | Overlapping roles in rolling CV, not disjoint partitions; metadata identifies data but does not store it (DVC does) |
+| Artifacts | `training/` config, manifest, metrics, `cv_results.csv`, forecast plot; archived `source/` and `uv.lock`; `source_dirty` tag | Provenance links a result to its inputs; an identity does not preserve the resource |
+| Logged model `forecast_pipeline` | Signature, input example, environment, `model_checks.json` | Fitted scaling + calendar encoding + estimator; input is 29 engineered features, raw history goes through `features.build_next_features` |
+| Registered model | Versions, `champion`, source runs, `selected_trial_run_id` tag | Registration is not approval or deployment; version numbers depend on registry history |
 
-Inside the selected run:
+Details worth stating accurately:
 
-1. Check parameters and named `cv_*` metrics. No `test_*` metric should exist in a default execution.
-2. Open `training/forecast.png`, `training/cv_results.csv`, `training/config.yaml` and `training/manifest.json`.
-3. Inspect archived `source/` modules and `uv.lock` alongside the recorded content hashes. Source modifications are disclosed by the `source_dirty` tag.
-4. Open the linked logged model `forecast_pipeline`. Inspect its signature, input example and pinned model environment.
+- `cv_rmse_kw` is pooled over validation predictions; `mean_rmse_kw` in `cv_results.csv` averages fold RMSEs and can differ.
+- Model-linked metrics are named `selection_cv_*`: they come from fold refits with the selected settings, while the logged pipeline is refitted on all development rows. They are optimistic selection evidence, not an unbiased estimate of the whole search.
+- A signature checks column names and types. Temporal validity is enforced separately by the history helper, which rejects short or gapped history and targets inside the fitting period.
+- Moving `champion` changes later alias resolution only; an already loaded model keeps its artifact. `predict` resolves the alias once and records the numbered version.
+- Models use explicit `skops` serialization, trusting only `sklearn.tree._tree.Tree` beyond the defaults. MLflow cannot pin pip in its Conda spec because the uv environment has no pip; requirements and the lock are recorded. A fresh isolated serving environment has not been tested.
+- No `test_*` metric appears by default. `--final-test` exists for a frozen configuration, but earlier test scores are already recorded in `02_reproducible_project/experiments/verification.md`, so describe that history honestly.
+- Static fallbacks (generated from real results, not UI screenshots): `model_comparison.png`, `fold_comparison.png`, `search/optimization.png`, `search/hyperparameters.png`, `diagnostics/diagnostics.png`, `evaluation_cost.png` (local CV time, not serving latency).
 
-The model includes fitted numerical scaling, calendar encoding and the estimator. Its input is a frame with 29 engineered numeric columns, represented as doubles in the MLflow signature. Raw observation history is handled by the shared feature helper. The model metadata records this feature specification and the last fitted target timestamp.
+## Deliberately out of scope
 
-Training automatically reloads the logged model through `mlflow.pyfunc.load_model` and checks predictions against the local pipeline. A run receives `model_roundtrip_verified=true` only after this succeeds.
+Kept out to stay within the lecture's focus on experiment and model management:
 
-## 5. Register an explicitly selected run
+- Fold-level grandchild runs: fold curves and `folds.json` already show the evidence.
+- Optuna pruning (`NopPruner`): temporal windows differ in difficulty and fits are small, so every trial completes all three folds.
+- Statistical nested CV: MLflow nesting organizes records; it is not an outer evaluation loop.
+- Study resume or distributed search: the Optuna study is persisted in SQLite for inspection only; each command starts a new study.
+- Automatic feature/parameter importance, serving platforms, monitoring suites, feature stores, containers, CI/CD and cloud deployment. Serving and monitoring belong to Presenter 3 and are discussed conceptually.
+- Deprecated registry stages (Staging/Production); aliases and versions are used instead.
 
-Copy the actual run ID from its UI or local receipt. Replace `SELECTED_RUN_ID` below:
+## Tests
 
 ```bash
-uv run --locked --extra tracking python -m electricity_demo.registry --run-id SELECTED_RUN_ID --name electricity-mt158-hourly --alias champion --reason "Lowest development CV MAE among the compatible Ridge and forest runs; baseline and fold results inspected."
+uv run --locked --offline --extra tuning python -m pytest -q
 ```
 
-Use that reason only when it accurately describes your selection. Registration requires a completed tracked run with a verified model round trip. It does not rerun training or score the test period.
+Integration tests use the real SQLite-backed MLflow path: CV logging, effective parameters, no default test metrics, grid/TPE trials, fold histories, dataset inputs, failed-run status, selection rejection, signature rejection of missing features, model reload, version/alias retrieval and history-only prediction.
 
-To show another version, explicitly register another completed run under the same name and explain its role. Omit `--alias champion` for a comparison candidate. Each invocation creates a new version, including repeat invocations for the same run. Registering a model or changing an alias does not deploy or reload a service.
+## References
 
-The registry uses numbered versions and the case-sensitive alias `champion`. The source run and logged model remain traceable. Avoid deprecated Production/Staging stages.
-
-## 6. Presenter 3's minimal handoff
-
-Use `history.csv` from the selected execution, replacing `SELECTED_OUTPUT_DIRECTORY`:
-
-```bash
-uv run --locked --extra tracking python -m electricity_demo.predict --history outputs/SELECTED_OUTPUT_DIRECTORY/history.csv --output outputs/next_hour_forecast.json
-```
-
-The command resolves `champion` to a numbered version once, loads that version, constructs the next feature row from observed history and returns:
-
-- immutable numbered model URI and source run ID
-- prediction origin and target timestamp
-- next-hour predicted demand in kW
-
-The saved UCI development history ends at `2014-11-01 00:00`. This example predicts the hour ending `2014-11-01 01:00`. It requires no future target value. The loader rejects insufficient or gapped history, and rejects a target within the model's fitting period.
-
-This is a local historical demonstration of an inference interface. A sequence of later predictions must advance with newly observed history. This model does not make a whole future-day forecast from one origin.
-
-## 7. Validation and screenshots
-
-```bash
-uv run --locked --offline --extra tracking python -m pytest -q
-```
-
-Integration checks cover the actual SQLite-backed MLflow path, correct CV logging, effective selected parameters, absence of default test metrics, model signature rejection of missing features, model loading, version/alias retrieval, history-only prediction and failed-run status. Feature tests compare inference construction with training-time features.
-
-For the slides, capture the compatible run table, selected run details/plot, logged-model signature, registered versions/alias and prediction result. Use the same run/model/version identifiers across the screenshots. The slide-by-slide script is in `PRESENTER_2_SLIDE_PLAN.md`.
-
-Do not tune against the final test. If a final test report is needed after freezing a configuration, the tracked command accepts `--final-test`, following the base training implementation's explicit opt-in behavior. Prior test results are already documented in this repository, so describe that history accurately.
-
-## Official references
-
-- [MLflow Tracking concepts](https://mlflow.org/docs/latest/ml/tracking/)
-- [MLflow sklearn model logging and autologging](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.sklearn.html)
-- [MLflow registry, versions and aliases](https://mlflow.org/docs/latest/ml/model-registry/workflow/)
-
-The dependency lock and executable tests establish which API version this demonstration uses. The lecture's focus is the ML lifecycle, not tracking-server administration.
+- [MLflow Tracking](https://mlflow.org/docs/latest/ml/tracking/)
+- [MLflow sklearn flavor](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.sklearn.html)
+- [Model Registry, versions and aliases](https://mlflow.org/docs/latest/ml/model-registry/workflow/)
+- [Parent and child runs](https://mlflow.org/docs/latest/ml/traditional-ml/tutorials/hyperparameter-tuning/part1-child-runs/)
+- [Dataset tracking](https://mlflow.org/docs/latest/ml/dataset/)
+- [Optuna TPE sampler](https://optuna.readthedocs.io/en/stable/reference/samplers/generated/optuna.samplers.TPESampler.html)

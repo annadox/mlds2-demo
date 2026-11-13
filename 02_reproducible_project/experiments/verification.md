@@ -1,5 +1,7 @@
 # Validation results — 11 November 2026
 
+Dated record of the base (untracked) workflow before MLflow was added. Later verification, including the MLflow integration tests, is in [../../docs/MLFLOW_ENHANCED_RESULTS.md](../../docs/MLFLOW_ENHANCED_RESULTS.md).
+
 ## Current two-model workflow
 
 Verified after simplifying the demo to Ridge regression and random forest, using the locked Python 3.12.1 environment.
@@ -16,7 +18,7 @@ Verified after simplifying the demo to Ridge regression and random forest, using
 | Ridge regression | 9.663 |
 | Same-hour-yesterday baseline | 30.124 |
 
-The current development scores match the previously recorded scores. `outputs/validation.json` records the two new run directories, and `outputs/comparison.md` displays the active two-model comparison.
+The current development scores match the previously recorded scores. `outputs/comparison.md` displays the active two-model comparison.
 
 The self-contained notebook was also executed with the cached local CSV, including both training cells, comparison/scatter plots and reloading the saved random-forest bundle. Reloaded predictions matched the original forest predictions. Its intentionally mutable-data cell was skipped to preserve the local dataset. Saved notebook outputs were cleared so students cannot see stale results from removed model types. The notebook retains its deliberate leakage and unseeded split for the lecture, so its scores are not directly comparable to the packaged workflow.
 
@@ -34,4 +36,4 @@ These results come from the earlier verification with the same feature values an
 
 The earlier v1/v2/v1 DVC restore verification reproduced restored-v1 predictions. The source/prepared data and snapshot pointers were not changed by the two-model simplification. Prepared v1 SHA-256 is `06e155b416659aa93e510a6d233a637baee5f65970830c5715ce2f796b2733ea`; synthetic v2 SHA-256 is `a9171f44ae9891b5145bb60fa30f5954bd7cc1fe621052f4519f185f30fa1b3a`. Both snapshots remain cached; v1 remains active.
 
-Historical generated artifacts for retired model types were moved into `01_notebook/archive/` and `outputs/archive/` rather than deleted. Active reports include only Ridge and random forest. Historical run records stay unchanged; they are excluded from current comparisons.
+Active reports include only Ridge and random forest; run records of retired model types are excluded from current comparisons.

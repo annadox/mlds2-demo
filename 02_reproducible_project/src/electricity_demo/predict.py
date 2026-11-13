@@ -1,4 +1,7 @@
-"""Resolve a registry alias and forecast one hour from observed meter history."""
+"""Resolve a registry alias and forecast one hour from observed meter history.
+
+Inference path: imports features, prepare and the MLflow store only, never training code.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +9,12 @@ import argparse
 import json
 
 import mlflow
+import pandas as pd
 
 from .config import project_path, write_json
 from .features import build_next_features
 from .prepare import load_hourly
-from .tracking import DEFAULT_EXPERIMENT, DEFAULT_STORE, configure_store
+from .store import DEFAULT_EXPERIMENT, DEFAULT_STORE, configure_store
 
 
 def predict_next(history_path, *, name=DEFAULT_EXPERIMENT, alias="champion", store_dir=DEFAULT_STORE) -> dict:
@@ -21,7 +25,6 @@ def predict_next(history_path, *, name=DEFAULT_EXPERIMENT, alias="champion", sto
     history = load_hourly(project_path(history_path))
     features = build_next_features(history, model_info.metadata["feature_spec"])
     # Do not present a prediction inside the model's fitting period as a new forecast.
-    import pandas as pd
     if features.index[0] <= pd.Timestamp(model_info.metadata["development_last_target"]):
         raise ValueError("Forecast target must be after the model's training period.")
     model = mlflow.pyfunc.load_model(model_uri)

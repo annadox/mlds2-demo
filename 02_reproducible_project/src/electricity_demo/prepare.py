@@ -66,6 +66,8 @@ def validate_hourly(frame: pd.DataFrame) -> None:
     dates = pd.DatetimeIndex(frame["timestamp"])
     if dates.tz is not None or dates.hasnans or not dates.is_unique or not dates.is_monotonic_increasing:
         raise ValueError("Timestamps must be unique, increasing source wall-clock values without a timezone.")
+    if not dates.equals(dates.floor("h")):
+        raise ValueError("Hourly observations must be labelled at whole-hour boundaries.")
     if not (dates.to_series().diff().iloc[1:] == pd.Timedelta(hours=1)).all():
         raise ValueError("Expected an uninterrupted hourly grid; missing rows must not silently change lag durations.")
     values = frame["load_kw"].to_numpy(dtype=float)

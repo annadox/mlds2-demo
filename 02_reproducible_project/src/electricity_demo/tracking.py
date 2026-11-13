@@ -1,28 +1,24 @@
-"""Track the existing training execution in a local MLflow store."""
+"""Track a training execution in a local MLflow store.
+
+A thin adapter: it calls the unchanged training functions and records their in-memory result.
+Training code itself never imports MLflow.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import pickle
 from importlib.metadata import version
 from pathlib import Path
 
 import mlflow
 import mlflow.sklearn
 import numpy as np
-import yaml
-from mlflow import MlflowClient
 from mlflow.models import infer_signature
 
 from .config import PROJECT_ROOT, project_path, sha256_file, write_json
-from .features import build_features
-from .prepare import load_hourly
-from .split import chronological_folds, split_development_test
-from .train import run_training
-
-DEFAULT_EXPERIMENT = "electricity-mt158-hourly"
-DEFAULT_STORE = PROJECT_ROOT / ".mlflow"
+from .store import DEFAULT_EXPERIMENT, DEFAULT_STORE, configure_store
+from .train import TrainingResult, fit_and_evaluate, save_run
 
 
 def experiment_id_for(name: str, store_dir=DEFAULT_STORE) -> str:
@@ -54,16 +50,6 @@ def log_datasets(development, folds, source_path):
     return datasets
 
 
-def configure_store(store_dir: str | Path = DEFAULT_STORE) -> MlflowClient:
-    """Anchor both metadata and artifacts to one explicit local directory."""
-    root = project_path(store_dir).resolve()
-    root.mkdir(parents=True, exist_ok=True)
-    uri = f"sqlite:///{(root / 'mlflow.db').as_posix()}"
-    mlflow.set_tracking_uri(uri)
-    mlflow.set_registry_uri(uri)
-    return MlflowClient()
-
-
 def evaluation_metrics(result: dict, prefix: str) -> dict:
     values = {
         f"{prefix}_mae_kw": result["model"]["mae_kw"],
@@ -87,42 +73,34 @@ def run_tracked_training(
     experiment_id = experiment_id_for(experiment, store_dir)
     # One execution includes the existing CV/search and development refit.
     # Exceptions leave an explicitly FAILED MLflow run.
-    with mlflow.start_run(experiment_id=experiment_id, run_name=run_name) as run:
-        destination = run_training(config_path, final_test=final_test)
+    with mlflow.start_run(experiment_id=experiment_id, run_name=run_name):
+        result = fit_and_evaluate(config_path, final_test=final_test)
+        destination = save_run(result)
         mlflow.set_tag("run_kind", "training")
-        log_training_output(destination)
+        log_training_result(result, destination)
     return destination
 
 
-def log_training_output(destination: Path) -> None:
-    """Package an existing training output in the current MLflow run."""
+def log_training_result(result: TrainingResult, destination: Path) -> None:
+    """Record a finished training result, its saved run folder and its model in the active MLflow run."""
     if mlflow.active_run() is None:
         raise ValueError("An active MLflow run is required.")
-    config = yaml.safe_load((destination / "config.yaml").read_text())
-    manifest = json.loads((destination / "manifest.json").read_text())
-    metrics = json.loads((destination / "metrics.json").read_text())
+    if result.manifest is None:
+        raise ValueError("Save the run (save_run) before logging it.")
+    config, manifest, metrics, spec = result.config, result.manifest, result.metrics, result.feature_spec
+    fitted, data = result.pipeline, result.data
     final_test = metrics["final_test_evaluated"]
-    feature_spec = json.loads((destination / "feature_spec.json").read_text())
-    with (destination / "model.pkl").open("rb") as handle:
-        fitted = pickle.load(handle)  # Produced by run_training in this process.
-
-    data_path = project_path(config["dataset"])
-    if sha256_file(data_path) != manifest["dataset"]["sha256"]:
-        raise ValueError("Dataset changed after training; cannot construct a matching input example.")
-    raw = load_hourly(data_path, project_path(config["dataset_manifest"]))
-    development, _ = split_development_test(build_features(raw, config["features"]), config["evaluation"])
-    folds = chronological_folds(development, config["evaluation"])
-    _, validation_dataset = log_datasets(development, folds, data_path)
+    _, validation_dataset = log_datasets(data.development, data.folds, data.dataset_path)
     # All model inputs are numeric. A double schema avoids fragile integer
     # width differences between pandas, CSV and JSON consumers.
-    example = development[feature_spec["column_order"]].tail(5).astype("float64")
+    example = data.development[spec["column_order"]].tail(5).astype("float64")
     expected = fitted.predict(example)
     preparation = manifest["dataset"]["preparation"]
     params = {
         "model_type": config["model"]["type"],
         "seed": config["seed"],
         "customer": preparation.get("preparation", {}).get("customer", "unspecified"),
-        "required_history_hours": feature_spec["required_history_hours"],
+        "required_history_hours": spec["required_history_hours"],
         "lags": json.dumps(config["features"]["lags"]),
         "rolling_windows": json.dumps(config["features"]["rolling_windows"]),
         "search_enabled": config["search"]["enabled"],
@@ -152,8 +130,7 @@ def log_training_output(destination: Path) -> None:
         "training_elapsed_seconds": manifest["elapsed_seconds"],
     })
     for fold in metrics["cv"]["folds"]:
-        mlflow.log_metrics(evaluation_metrics(fold, f"fold_{fold['fold']}"))
-        log_fold_metrics(fold)
+        log_fold_metrics(fold)  # One stepped history per metric; step = fold number.
     if final_test:
         mlflow.log_metrics(evaluation_metrics(metrics["test"], "test"))
 
@@ -180,7 +157,7 @@ def log_training_output(destination: Path) -> None:
         input_example=example,
         signature=infer_signature(example, expected),
         pip_requirements=requirements,
-        metadata={"feature_spec": feature_spec, "development_last_target": manifest["evaluation"]["development_last_target"],
+        metadata={"feature_spec": spec, "development_last_target": manifest["evaluation"]["development_last_target"],
                   "selection_metrics": "CV uses fold-specific refits; the saved model is refitted on all development data."},
     )
     reloaded = mlflow.pyfunc.load_model(model_info.model_uri)
