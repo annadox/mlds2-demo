@@ -12,7 +12,7 @@ The deck before the 13 November redesign is kept as `mlds2-lecture-previous.pptx
 | [TEAM_HANDOFF_AND_REHEARSAL.md](TEAM_HANDOFF_AND_REHEARSAL.md) | Shared task contract, presenter transitions, Presenter 3 consumption command, rehearsal plan, likely questions |
 | `evidence_snapshot.json` | Exact batch IDs, scores, lineage, prediction and figure hashes used in the slides |
 | `assets/mlflow_screenshots/` | Full MLflow UI captures of the batch (regenerate with `scripts/capture_mlflow_screenshots.py`); the slides use crops of these |
-| `assets/*.png`, `assets/all_trials.csv` | Analysis figures and trial table generated from the recorded batch |
+| `assets/all_trials.csv`, `assets/random_forest_forecast.png` | Trial table and one validation-week forecast of the selected forest |
 
 Recorded IDs and scores: [../MLFLOW_ENHANCED_RESULTS.md](../MLFLOW_ENHANCED_RESULTS.md). Regenerating the evidence and reading the UI: [../MLFLOW_DEMO.md](../MLFLOW_DEMO.md).
 

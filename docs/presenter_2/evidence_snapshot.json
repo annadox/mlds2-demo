@@ -97,14 +97,8 @@
       "reason": "Restore the validation-selected champion after the local rollback illustration."
     }
   ],
-  "ui_screenshots": "docs/presenter_2/assets/mlflow_screenshots/ (MLflow 3.18.0, captured 2026-11-13 with scripts/capture_mlflow_screenshots.py)",
+  "ui_screenshots": "docs/presenter_2/assets/mlflow_screenshots/ (MLflow 3.18.0 views and charts, captured 2026-11-13/14 with scripts/capture_mlflow_screenshots.py)",
   "asset_sha256": {
-    "evaluation_cost.png": "8f6a90612bbfb2a9bf78b84ea3a85286e7759b3d84543b99ecd6cf405b9b8a43",
-    "fold_comparison.png": "22b735f42f7c836f3d1700e57340df6bd63267151b78ec73b0f71510043a8b03",
-    "model_comparison.png": "8bcbaa226bb052278f48148c2c919c2045ceff4455e9e00886391ab0656164d7",
-    "random_forest_diagnostics.png": "95654178237432ac3e701eaf4aa448f3261c576731b7b7bc4009a1b40b333669",
-    "random_forest_forecast.png": "713c1da340b9fac7ae1daf977895b46b7a5cc580b4b7615fcc4a18ed9403d29b",
-    "random_forest_hyperparameters.png": "adc0e780f35db5e67c411419ceec34783bf67907d465fbce17f94635ad65737e",
-    "random_forest_optimization.png": "03b4dae4de7df9e72ebf67ee46db6585f801319e2b26fba8fa3962cf20275308"
+    "random_forest_forecast.png": "713c1da340b9fac7ae1daf977895b46b7a5cc580b4b7615fcc4a18ed9403d29b"
   }
 }

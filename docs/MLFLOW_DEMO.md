@@ -34,20 +34,13 @@ random_forest-tpe-study             run_kind=study  (refitted + logged model)
   random_forest-trial-00 … -09      run_kind=trial  (seeded TPE; trial 0 = original forest)
 ```
 
-Search spaces are in `configs/tuning.yaml`. Trials record parameters, CV metrics, fold boundaries and dataset inputs. Only each family's selected configuration is refitted on the development period and packaged on its parent run, which links to its winning trial. The parent reuses the winning trial's fold results; only the final development refit runs again, so the parent's CV metrics equal the selected trial's. (The recorded 12 November batch predates this and re-ran CV once with an agreement check.)
+Search spaces are in `configs/tuning.yaml`. Trials record parameters, CV metrics, fold boundaries and dataset inputs. Only each family's selected configuration is refitted on the development period and packaged on its parent run, which links to its winning trial. The parent reuses the winning trial's fold results; only the final development refit runs again, so the parent's CV metrics equal the selected trial's.
 
-The script then compares the compatible parent runs and the baseline with `selection.select_candidate` (the selection rule as code), writes `lecture/selection_decision.json` (rejecting unfinished, incompatible or baseline-inferior candidates), registers both families under `electricity-mt158-lecture`, assigns `champion` to the winner and, with `--demonstrate-rollback`, temporarily moves the alias to the other version and back, verifying the restored prediction. The receipt is `outputs/lecture_latest.json`; figures and receipts go to `outputs/lecture-<batch>/presentation_assets/`. A single family can be searched with `python -m electricity_demo.tune --config configs/random_forest.yaml`.
+The script then compares the compatible parent runs and the baseline with `selection.select_candidate` (the selection rule as code), writes `lecture/selection_decision.json` (rejecting unfinished, incompatible or baseline-inferior candidates), registers both families under `electricity-mt158-lecture`, assigns `champion` to the winner and, with `--demonstrate-rollback`, temporarily moves the alias to the other version and back, verifying the restored prediction. The receipt is `outputs/lecture_latest.json`; the selection decision, trial table and evidence go to `outputs/lecture-<batch>/`. A single family can be searched with `python -m electricity_demo.tune --config configs/random_forest.yaml`.
 
-## Introductory two-run workflow
+## What one tracked run contains
 
-The smaller step-by-step path, in experiment `electricity-mt158-hourly`, uses the separate commands that the lecture workflow combines:
-
-```bash
-uv run --locked --extra tracking python -m electricity_demo.tracking --config configs/ridge.yaml --run-name ridge-search
-uv run --locked --extra tracking python -m electricity_demo.tracking --config configs/random_forest.yaml --run-name forest-depth-10
-uv run --locked --extra tracking python -m electricity_demo.registry --run-id SELECTED_RUN_ID --name electricity-mt158-hourly --alias champion --reason "Lowest development CV MAE among compatible runs; baseline and folds inspected."
-uv run --locked --extra tracking python -m electricity_demo.predict --history outputs/SELECTED_OUTPUT_DIRECTORY/history.csv
-```
+For a single tracked training run without a search, use `python -m electricity_demo.tracking --config configs/ridge.yaml`.
 
 `tracking.run_tracked_training` opens one MLflow run, calls `train.fit_and_evaluate` and `train.save_run`, then logs the in-memory result: validation metrics, effective fitted parameters (the selected alpha, not the YAML's starting value) and artifacts, packages the pipeline and verifies a reload. One run covers the whole execution, including its folds, any grid search and the final development refit. `outputs/<execution>/tracking.json` records the run ID, model URI and store. Failed training or logging leaves the run marked FAILED. Registration requires a finished run with a verified model round trip; each invocation creates a new version. Omit `--alias` for a comparison candidate.
 
@@ -91,7 +84,7 @@ Details worth stating accurately:
 - Moving `champion` changes later alias resolution only; an already loaded model keeps its artifact. `predict` resolves the alias once and records the numbered version.
 - Models use explicit `skops` serialization, trusting only `sklearn.tree._tree.Tree` beyond the defaults. MLflow cannot pin pip in its Conda spec because the uv environment has no pip; requirements and the lock are recorded. A fresh isolated serving environment has not been tested.
 - No `test_*` metric appears by default. `--final-test` exists for a frozen configuration, but earlier test scores are already recorded in `02_reproducible_project/experiments/verification.md`, so describe that history honestly.
-- Static fallbacks (generated from real results, not UI screenshots): `model_comparison.png`, `fold_comparison.png`, `search/optimization.png`, `search/hyperparameters.png`, `diagnostics/diagnostics.png`, `evaluation_cost.png` (local CV time, not serving latency).
+- The project draws no charts of its own for comparing runs: fold curves, search progress and parameter plots come from MLflow's chart view. Only Part 1's run summary keeps its `forecast.png` and `comparison.png`.
 
 ## Deliberately out of scope
 

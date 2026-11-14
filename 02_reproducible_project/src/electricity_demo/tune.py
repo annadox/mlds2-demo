@@ -20,7 +20,6 @@ import yaml
 from .config import load_training_config, positive_int, project_path, read_yaml, sha256_file, write_json
 from .evaluate import compare_predictions
 from .pipeline import build_pipeline
-from .plots import plot_search
 from .store import LECTURE_EXPERIMENT
 from .tracking import DEFAULT_STORE, evaluation_metrics, experiment_id_for, log_datasets, log_fold_metrics, log_training_result
 from .train import candidate_record, evaluate_candidate, finalize, load_development, run_identity, save_run
@@ -145,8 +144,8 @@ def run_search(config_path, *, search_path="configs/tuning.yaml", experiment=LEC
                      "final_test_evaluated": False,
                      "qualification": "Selection CV, not an unbiased assessment of the whole search; budget is small."}
         write_json(destination / "selection.json", selection)
-        plot_search(trial_table, metrics=result.metrics, destination=destination, model_type=model_type)
-        for name in ("trials.csv", "optuna_trials.csv", "selection.json", "optimization.png", "hyperparameters.png"):
+        # Search progress and parameter charts are drawn by the MLflow UI from the logged metrics and params.
+        for name in ("trials.csv", "optuna_trials.csv", "selection.json"):
             mlflow.log_artifact(str(destination / name), artifact_path="search")
         mlflow.set_tag("local_output_dir", str(destination))
     return destination

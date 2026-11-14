@@ -54,8 +54,6 @@ def test_trials_fold_histories_selection_and_rollback(training_config, tmp_path,
     progress = sorted(client.get_metric_history(parent.info.run_id, "best_so_far_mae_kw"), key=lambda m: m.step)
     assert [m.step for m in progress] == [0, 1]
     assert progress[-1].value <= progress[0].value
-    assert (output / "optimization.png").exists()
-    assert (output / "hyperparameters.png").exists()
     study = optuna.load_study(study_name=selection["study_name"], storage=f"sqlite:///{store / 'optuna.db'}")
     assert len(study.trials) == 2
 

@@ -62,7 +62,7 @@ The package is a library of small, tested functions; notebooks, CLIs, tracking a
 | MLflow adapters | `tracking.py` (log a `TrainingResult` as a run with a model), `tune.py` (nested trial runs; the parent reuses the winning trial's CV), `selection.py` (baseline run and the selection rule as code), `registry.py` (versions, aliases) | Yes (`tracking` / `tuning` extras) |
 | Inference | `predict.py` (resolve alias → build features → predict), `store.py` (store location) | Yes, but never imports training code |
 
-`scripts/lecture_demo.py` and `scripts/lecture_figures.py` orchestrate the Presenter 2 evidence batch; they are lecture scripts, not part of the package. See [../docs/MLFLOW_DEMO.md](../docs/MLFLOW_DEMO.md).
+`scripts/lecture_demo.py` produces the Presenter 2 evidence batch and `scripts/capture_mlflow_screenshots.py` captures its MLflow views; they are lecture scripts, not part of the package. See [../docs/MLFLOW_DEMO.md](../docs/MLFLOW_DEMO.md).
 
 Paths in configs resolve against this project directory. An installed (non-editable) copy of the package can be pointed at a checkout with `ELECTRICITY_DEMO_ROOT=/path/to/02_reproducible_project`.
 

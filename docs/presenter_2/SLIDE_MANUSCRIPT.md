@@ -630,7 +630,7 @@ Every bar comes from validation folds whose pipeline only saw its own training r
 
 ### Sources (not spoken)
 
-outputs/2026-11-13_22-14-53Z_random_forest_v1_8db6c5/error_by_hour.csv.
+Mean absolute error by target hour over the out-of-fold rows of the selected forest's predictions.csv (outputs/2026-11-13_22-14-53Z_random_forest_v1_8db6c5); values are fixed in the deck.
 
 ## Backup D: what the demo shows, and what it does not
 

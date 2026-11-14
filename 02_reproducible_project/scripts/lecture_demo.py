@@ -9,15 +9,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # lecture_figures.py lives next to this script.
 
 from electricity_demo.config import PROJECT_ROOT, write_json
 from electricity_demo.predict import predict_next
@@ -25,7 +21,6 @@ from electricity_demo.registry import assign_alias, register_run
 from electricity_demo.selection import log_baseline, select_candidate
 from electricity_demo.store import DEFAULT_STORE, LECTURE_EXPERIMENT, configure_store
 from electricity_demo.tune import run_search
-from lecture_figures import plot_diagnostics, plot_model_comparison, plot_tradeoff
 
 
 def run_demo(*, store_dir=DEFAULT_STORE, experiment=LECTURE_EXPERIMENT, forest_trials=None,
@@ -46,16 +41,10 @@ def run_demo(*, store_dir=DEFAULT_STORE, experiment=LECTURE_EXPERIMENT, forest_t
         table = pd.read_csv(output / "trials.csv")
         table["model_family"] = model_type
         tables.append(table)
-        plot_diagnostics(pd.read_csv(output / "predictions.csv"), output)
-        client = configure_store(store_dir)
-        for name in ("diagnostics.png", "error_by_hour.csv"):
-            client.log_artifact(receipt["run_id"], str(output / name), artifact_path="diagnostics")
     decision = select_candidate([r["run_id"] for r in records], baseline["run_id"], store_dir=store_dir)
     winner = next(r for r in records if r["run_id"] == decision["selected_run_id"])
-    plot_model_comparison(records + [baseline], evidence)
     all_trials = pd.concat(tables, ignore_index=True)
     all_trials.to_csv(evidence / "all_trials.csv", index=False)
-    plot_tradeoff(all_trials, evidence)
     write_json(evidence / "selection_decision.json", decision)
     client = configure_store(store_dir)
     for path in evidence.iterdir():

@@ -52,7 +52,7 @@ Filter: `tags.lecture_batch = '20261113T221340Z-4f68dd' and attributes.status = 
 ## Figures and screenshots
 
 - Native MLflow UI screenshots of this batch: `docs/presenter_2/assets/mlflow_screenshots/` (runs, compare, run overview, run artifacts, logged model, registry, version) and MLflow's own charts: `folds.png` (fold_mae_kw per run by step), `search.png` (forest trial objective and best so far by trial) and `params.png` (parallel coordinates of the forest trials). Regenerate with `scripts/capture_mlflow_screenshots.py` against a running UI.
-- Analysis figures generated from the same results: `docs/presenter_2/assets/*.png`, with hashes in `docs/presenter_2/evidence_snapshot.json`.
+- `docs/presenter_2/assets/all_trials.csv` (all 13 trials with settings and scores) and `random_forest_forecast.png` (one validation week of the selected forest, from its training run).
 
 Generated outputs, models, data and SQLite stores are local and ignored by Git.
 
