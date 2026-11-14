@@ -1,6 +1,6 @@
 # Presenter 2: Experiment Tracking and Model Management with MLflow
 
-Slide copy, visuals, speaker notes and sources for [mlds2-lecture.pptx](mlds2-lecture.pptx): a section opener, eleven main slides (25 minutes) and four hidden backups (A–D). Generated from the deck; edit the deck first, then this file. Screenshots are authentic local MLflow 3.18.0 captures of batch `20261112T181949Z-424799`; no training or registry change happens on stage.
+Slide copy, visuals, speaker notes and sources for [mlds2-lecture.pptx](mlds2-lecture.pptx): a section opener, twelve main slides (25 minutes) and four hidden backups (A–D). Generated from the deck; edit the deck first, then this file. Screenshots are authentic local MLflow 3.18.0 captures of batch `20261113T221340Z-4f68dd`; no training or registry change happens on stage.
 
 Bracketed cues such as [1] or [Left] in the notes refer to the numbered markers and regions on the slide.
 
@@ -21,11 +21,11 @@ From a reproducible training command to a model an application can retrieve, wit
 
 - Part 1's run folders record everything. They do not scale to a team.
 - OUR OUTPUTS/ FOLDER TODAY
-- 2026-11-12_17-40-17Z_ridge_v1_760c2f/
-- 2026-11-12_18-21-13Z_random_forest_…/
+- 2026-11-13_22-13-12Z_ridge_v1_87e9e4/
+- 2026-11-13_22-13-27Z_random_forest_…/
 - manifest.json  metrics.json  model.pkl
 - comparison.md   (report.py, 200 lines)
-- … 7 run folders, one laptop
+- … one folder per run, one laptop
 - WHAT BREAKS WHEN A TEAM USES IT
 - Search runs across people and machines / Know which runs are comparable / Find last month's run and its exact code / Hand one model to another team
 - Tracking keeps the same records: shared, searchable and linked to the models they produced.
@@ -102,7 +102,7 @@ https://mlflow.org/docs/latest/ml/tracking/; https://mlflow.org/docs/latest/ml/m
 
 ## Slide 03: Experiments, runs and what a run records
 
-**Time:** 2 min
+**Time:** 1.5 min
 
 ### On slide
 
@@ -131,7 +131,7 @@ Experiment-to-runs hierarchy plus four cards: parameters, metrics, artifacts, ta
 
 ### Speaker notes
 
-Timing 3:30-5:30.
+Timing 3:30-5:00.
 
 In everyday language every attempt is an "experiment". In MLflow, an experiment is a container for one task, here forecasting hourly load for one customer. It groups runs and, in MLflow 3, the logged models they produce.
 
@@ -175,7 +175,7 @@ Annotated logging pattern with four callouts; separate-concerns strip (train.py 
 
 ### Speaker notes
 
-Timing 5:30-8:00.
+Timing 5:00-7:30.
 
 This is the simplified pattern. The point is where the tracking code lives.
 
@@ -224,7 +224,7 @@ Actual Runs view with tag filter and expanded parent/child search runs, three ma
 
 ### Speaker notes
 
-Timing 8:00-10:00.
+Timing 7:30-9:30.
 
 This is the real Runs view of our recorded batch.
 
@@ -238,20 +238,62 @@ Do not read numbers aloud here. The point is navigation: experiment, runs, one r
 
 Pause and ask: "Which column tells you the tree depth of each candidate?"
 
-Transition: "Placing numbers next to each other is easy. When is comparing them valid?"
+Transition: "Tables are one view. MLflow can also chart the same records."
 
 ### Sources (not spoken)
 
-assets/mlflow_screenshots/hierarchy.jpg; tune.run_search.
+assets/mlflow_screenshots/runs.png; tune.run_search.
 
-## Slide 06: Selecting a model: compare, then decide in code
+## Slide 06: Comparing runs visually
 
-**Time:** 2.5 min
+**Time:** 2 min
+
+### On slide
+
+- Metrics logged with a step, and parameters per trial, become MLflow charts with no plotting code.
+- 1
+- Fold error per run
+- Step = chronological fold. All runs worsen in fold 3; the baseline stays far above.
+- 2
+- Optuna search progress
+- Step = trial. Solid: each trial's error. Dashed: best so far; most gain by trial 3, a small gain at trial 9.
+- 3
+- Settings vs error
+- One line per forest trial. Shallow trees (depth 3–5) give the three worst errors; depth 10+ all score about 8.4.
+- Ten trials show search behaviour, not robust parameter importance. Folds are time windows, not epochs.
+
+### Visual
+
+Three native MLflow charts: fold_mae_kw per run by step, the forest search's trial objective and best-so-far, and parallel coordinates of the forest trials.
+
+### Speaker notes
+
+Timing 9:30-11:30.
+
+These are MLflow's own charts. We only logged metrics with a step and parameters per trial; the UI draws them, so nobody writes plotting code to compare runs.
+
+[1] Fold error per run. We logged fold_mae_kw with step equal to the fold number. Forest and Ridge stay close and far below the seasonal baseline, and every method gets worse in the third, latest window. That is a reason to look closer, not proof of drift.
+
+[2] The Optuna search on the forest parent run. Step is the trial number. The solid line is each trial's error; the dashed line is the best so far. Most of the gain is made by trial 3, with one small further improvement at trial 9; the spikes are the search exploring poor settings.
+
+[3] Parallel coordinates across the ten forest trials: each line is one trial, coloured by validation error. The three worst trials all use shallow trees, depth 3 to 5. Every trial with depth 10 or more lands around 8.4, whatever its feature fraction, so depth is the one setting that clearly matters here.
+
+[Bottom] Keep the claims modest. Ten trials illustrate search behaviour; they do not prove which parameter matters. And the x-axis in the first chart is time windows, not training epochs.
+
+Transition: "Charts help us investigate. But the decision itself should be code."
+
+### Sources (not spoken)
+
+assets/mlflow_screenshots/folds.png, search.png, params.png; tracking.log_fold_metrics; tune.run_search.
+
+## Slide 07: Selecting a model: compare, then decide in code
+
+**Time:** 2 min
 
 ### On slide
 
 - The UI is for investigating. The decision rule should be code you can rerun.
-- Same baseline error in every run = same target hours
+- Same baseline error and comparison_group = comparable runs
 - Ranking metric: validation MAE (kW)
 - RANK ONLY COMPARABLE RUNS
 - Same data digest, same target hours, same protocol (comparison_group tag), status FINISHED.
@@ -261,13 +303,13 @@ assets/mlflow_screenshots/hierarchy.jpg; tune.run_search.
 
 ### Visual
 
-Actual Compare Runs rows (identical baseline, ranking metric) beside a selection-as-code panel using mlflow.search_runs.
+Actual Compare Runs rows (identical baseline and comparison_group, ranking metric) beside a selection-as-code panel using mlflow.search_runs.
 
 ### Speaker notes
 
-Timing 10:00-12:30.
+Timing 11:30-13:30.
 
-[Left] MLflow's Compare Runs view for the two search parents and the seasonal baseline. Validation MAE: forest 8.39, Ridge 9.66, baseline 30.12 kilowatts. The amber row is a quick sanity check: the baseline error is identical in every run, so all three were scored on the same target hours. MLflow will happily put incomparable numbers side by side, so check data digest, comparison_group and status first.
+[Left] MLflow's Compare Runs view for the two search parents and the seasonal baseline. Validation MAE: forest 8.39, Ridge 9.66, baseline 30.12 kilowatts. The amber rows are a quick sanity check: the baseline error and the comparison_group tag are identical in every run. That tag hashes the data, features, evaluation design, code and lockfile, so equal values mean the runs are comparable. MLflow will happily put incomparable numbers side by side, so check data digest, comparison_group and status first.
 
 [Right] The UI is for investigating. The decision itself should be code: search runs with a filter, order by the agreed metric, check comparability and the baseline, then register. Our demo does exactly this in selection.select_candidate. Because it is code, it gives the same answer every time, a colleague can review it, and it can run in CI after every training job instead of someone clicking through a UI.
 
@@ -277,9 +319,9 @@ Transition: "To investigate the selected candidate, we need more than metrics."
 
 ### Sources (not spoken)
 
-assets/mlflow_screenshots/run-comparison.jpg; selection.select_candidate; https://mlflow.org/docs/latest/api_reference/python_api/mlflow.html#mlflow.search_runs
+assets/mlflow_screenshots/compare.png; selection.select_candidate; https://mlflow.org/docs/latest/api_reference/python_api/mlflow.html#mlflow.search_runs
 
-## Slide 07: Provenance: where did this result come from?
+## Slide 08: Provenance: where did this result come from?
 
 **Time:** 2 min
 
@@ -298,7 +340,7 @@ assets/mlflow_screenshots/run-comparison.jpg; selection.select_candidate; https:
 - Digest of the data the run used.
 - 3
 - Tags
-- Data hash, snapshot and source_dirty: true. The code was not committed.
+- Data hash, lockfile hash, commit 64ec6b2 and source_dirty: false.
 - 4
 - Artifacts
 - Config, predictions, plots, archived source and uv.lock.
@@ -306,11 +348,11 @@ assets/mlflow_screenshots/run-comparison.jpg; selection.select_candidate; https:
 
 ### Visual
 
-Actual run overview (source, dataset, tags incl. source_dirty) and artifact tree, four markers.
+Actual run overview (source commit, dataset, tags incl. source_dirty: false) and artifact tree, four markers.
 
 ### Speaker notes
 
-Timing 12:30-14:30.
+Timing 13:30-15:30.
 
 This is one run's record, the selected forest search.
 
@@ -318,7 +360,7 @@ This is one run's record, the selected forest search.
 
 [2] Datasets: the digest of the data it used.
 
-[3] Tags: the data hash, the snapshot, and source_dirty: true. MLflow is telling us the code had uncommitted changes when this ran. That is provenance: the origin of a result, recorded honestly.
+[3] Tags: the data hash, the lockfile hash, the exact commit, and source_dirty: false. We committed before running this batch, so anyone can check out commit 64ec6b2 and get exactly this code. Had there been uncommitted changes, the tag would say true, and the commit alone would not describe the code. That is provenance: the origin of a result, recorded honestly.
 
 [4] Artifacts hold the evidence itself: the configuration, predictions, plots, plus archived source files and the uv.lock.
 
@@ -330,9 +372,9 @@ Transition: "One artifact is special: the model. Three objects get confused here
 
 ### Sources (not spoken)
 
-assets/mlflow_screenshots/run-inspection.jpg, run-artifacts.jpg; https://mlflow.org/docs/latest/ml/dataset/
+assets/mlflow_screenshots/run_overview.png, run_artifacts.png; https://mlflow.org/docs/latest/ml/dataset/
 
-## Slide 08: Run, logged model, registered version
+## Slide 09: Run, logged model, registered version
 
 **Time:** 1.5 min
 
@@ -357,7 +399,7 @@ Three cards: tracked run, logged model, registered version, with real identifier
 
 ### Speaker notes
 
-Timing 14:30-16:00.
+Timing 15:30-17:00.
 
 Three objects that are easy to mix up.
 
@@ -379,7 +421,7 @@ Transition: "Let us open the logged model."
 
 https://mlflow.org/docs/latest/ml/tracking/; https://mlflow.org/docs/latest/ml/model-registry/workflow/
 
-## Slide 09: The model contract: what a consumer receives
+## Slide 10: The model contract: what a consumer receives
 
 **Time:** 3 min
 
@@ -399,7 +441,6 @@ https://mlflow.org/docs/latest/ml/tracking/; https://mlflow.org/docs/latest/ml/m
 - requirements.txt (no training tools)
 - 1
 - 2
-- Actual logged model: package files (1) and input signature (2)
 - NOT INSIDE THE MODEL: FEATURES BUILT FROM RAW METER HISTORY
 - Option A · features inside the model / A custom pyfunc wraps the feature code; consumers send raw history.
 - Option B · shared feature library (our demo) / Consumers call build_next_features, the same feature code training uses.
@@ -410,7 +451,7 @@ Consumer contract card, actual logged-model files and signature, and the two opt
 
 ### Speaker notes
 
-Timing 16:00-19:00.
+Timing 17:00-20:00.
 
 This slide answers the key question of the section: what does another developer or application actually receive?
 
@@ -428,11 +469,11 @@ Transition: "With many logged models, how does an application find the selected 
 
 ### Sources (not spoken)
 
-assets/mlflow_screenshots/model-signature.jpg; tracking.log_training_output; predict.predict_next; features.build_next_features.
+assets/mlflow_screenshots/model.png; tracking.log_training_result; predict.predict_next; features.build_next_features.
 
-## Slide 10: Registry and aliases: the hand-off boundary
+## Slide 11: Registry and aliases: the hand-off boundary
 
-**Time:** 3 min
+**Time:** 2.5 min
 
 ### On slide
 
@@ -453,7 +494,7 @@ Actual registry versions table and version-2 lineage strip; load-by-alias code a
 
 ### Speaker notes
 
-Timing 19:00-22:00.
+Timing 20:00-22:30.
 
 The registry is where data science work is handed to the people who run applications.
 
@@ -473,11 +514,11 @@ Transition: "So when is a model ready to hand over?"
 
 ### Sources (not spoken)
 
-assets/mlflow_screenshots/registry-teaching.jpg, registry-lineage.jpg; registry.assign_alias; predict.predict_next; https://mlflow.org/docs/latest/ml/model-registry/workflow/
+assets/mlflow_screenshots/registry.png, version.png; registry.assign_alias; predict.predict_next; https://mlflow.org/docs/latest/ml/model-registry/workflow/
 
-## Slide 11: From a notebook model to a model others can use
+## Slide 12: From a notebook model to a model others can use
 
-**Time:** 3 min
+**Time:** 2.5 min
 
 ### On slide
 
@@ -498,7 +539,7 @@ Eight-item readiness checklist tagged Part 1 / MLflow / Team / Part 3; handoff q
 
 ### Speaker notes
 
-Timing 22:00-25:00.
+Timing 22:30-25:00.
 
 This is the difference between a model that works in a notebook and one another team can rely on.
 
@@ -566,7 +607,7 @@ For monitoring: data arrival and input validity are known immediately; forecast 
 
 ### Sources (not spoken)
 
-outputs/lecture-20261112T181949Z-424799/evidence.json; predict.py; features.build_next_features.
+outputs/lecture-20261113T221340Z-4f68dd/evidence.json; predict.py; features.build_next_features.
 
 ## Backup C: validation error by target hour
 
@@ -589,7 +630,7 @@ Every bar comes from validation folds whose pipeline only saw its own training r
 
 ### Sources (not spoken)
 
-outputs/2026-11-12_18-21-13Z_random_forest_v1_cf4f24/error_by_hour.csv.
+outputs/2026-11-13_22-14-53Z_random_forest_v1_8db6c5/error_by_hour.csv.
 
 ## Backup D: what the demo shows, and what it does not
 

@@ -9,18 +9,18 @@ The audience already knows modelling, cross-validation and leakage. This section
 | Slide | Time | Teaching objective | Repository evidence |
 | --- | --- | --- | --- |
 | 1. The notebook that worked once | 0–3 | Notebook problems are software problems | `01_notebook` cells: data mutation, scaler bundle, unseeded split, overwritten model |
-| 2. Library first: notebooks and scripts are thin clients | 3–7 | One package; notebook, CLI, tests and tracking call it | `src/electricity_demo/` layout |
-| 3. Keep fitted preprocessing with the model | 7–9 | One fitted object from features to predictions | `pipeline.py` vs notebook bundle |
-| 4. One feature definition for training and inference | 9–11 | Avoid training-serving skew | `features.feature_table`, parity test |
-| 5. Dependencies: consumer vs training | 11–13 | Declare, lock, separate runtime from training tools; limits of a lockfile | `pyproject.toml`, `uv.lock` |
-| 6. Configuration instead of hard-coded values | 13–15 | Validated, versioned config saved with every run | `configs/*.yaml`, `config.load_training_config` |
-| 7. Data identity | 15–16 | Immutable raw data, hash manifest, DVC pointer | `prepare.py`, `data/README.md` |
+| 2. Library first: notebooks and scripts are thin clients | 3–6.5 | One package; notebook, CLI, tests and tracking call it | `src/electricity_demo/` layout |
+| 3. Keep fitted preprocessing with the model | 6.5–8.5 | One fitted object from features to predictions | `pipeline.py` vs notebook bundle |
+| 4. One feature definition for training and inference | 8.5–10.5 | Avoid training-serving skew | `features.feature_table`, parity test |
+| 5. Dependencies: consumer vs training | 10.5–12.5 | Declare, lock, separate runtime from training tools; limits of a lockfile | `pyproject.toml`, `uv.lock` |
+| 6. Configuration instead of hard-coded values | 12.5–14.5 | Validated, versioned config saved with every run | `configs/*.yaml`, `config.load_training_config` |
+| 7. Version control: code in Git, data by hash | 14.5–16 | What goes in Git vs not; pull requests with CI and review; immutable raw data, hash manifest, DVC pointer | `.gitignore` files, `prepare.py`, `data/README.md` |
 | 8. Testing ML code: contracts, not accuracy | 16–20 | What to test; CI; tests vs quality gates | `tests/`, `.github/workflows/tests.yml` |
 | 9. One headless command | 20–22 | Same function for terminal, notebook, CI, scheduler | `train.py`, run folder, manifest |
-| 10. A week later: seven run folders | 22–23 | Hand-off: reproducible runs, but no way to manage them | `outputs/`, `report.py` |
+| 10. A few experiments later: a folder of runs | 22–23 | Hand-off: reproducible runs, but no way to manage them | `outputs/`, `report.py` |
 | A (hidden) | — | Evaluation protocol in code, for questions | `split.py`, tests |
 
-Checkpoints: slide 2 done by minute 7, slide 5 by 13, slide 8 by 20, slide 10 by 23. If running over, shorten slide 7 and the audience prompt on slide 2; keep the testing slide intact.
+Checkpoints: slide 2 done by minute 6:30, slide 5 by 12:30, slide 8 by 20, slide 10 by 23. If running over, shorten slide 7 and the audience prompt on slide 2; keep the testing slide intact.
 
 ## Handoff to Part 2
 

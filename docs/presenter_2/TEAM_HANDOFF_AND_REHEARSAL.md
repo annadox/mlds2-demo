@@ -54,7 +54,7 @@ From `02_reproducible_project` on the current machine:
 uv run --locked --offline --extra tuning python -m electricity_demo.predict \
   --name electricity-mt158-lecture \
   --alias champion \
-  --history outputs/2026-11-12_18-21-13Z_random_forest_v1_cf4f24/history.csv
+  --history outputs/2026-11-13_22-14-53Z_random_forest_v1_8db6c5/history.csv
 ```
 
 Expected identity and result from the current store:
@@ -62,7 +62,7 @@ Expected identity and result from the current store:
 ```json
 {
   "model_uri": "models:/electricity-mt158-lecture/2",
-  "source_run_id": "7d5d3f2547714e2dabf8333ad7123157",
+  "source_run_id": "e90482dae66c49d5a503ab2c20190d0e",
   "prediction_origin": "2014-11-01T00:00:00",
   "target_timestamp": "2014-11-01T01:00:00",
   "predicted_kw": 131.9840938586937
@@ -71,7 +71,7 @@ Expected identity and result from the current store:
 
 `--offline` assumes the documented dependencies are already installed. Keep `--extra tuning` on commands while using this environment so uv retains the optional packages. On another machine, use the setup and preparation instructions in the [demo guide](../MLFLOW_DEMO.md). The example history and the registry are generated local files, rather than contents available from a fresh Git checkout.
 
-The recorded verification output is in `outputs/lecture-20261112T181949Z-424799/handoff_prediction_verified.json`. Alias movement can change later resolution, so use a saved receipt in the slides and do not assume a future rerun will always have version number 2.
+The recorded verification output is in `outputs/lecture-20261113T221340Z-4f68dd/handoff_prediction_verified.json`. Alias movement can change later resolution, so use a saved receipt in the slides and do not assume a future rerun will always have version number 2.
 
 ### Decisions to settle with Presenter 3
 
@@ -81,6 +81,7 @@ The recorded verification output is in `outputs/lecture-20261112T181949Z-424799/
 4. Separate immediate input checks from delayed accuracy measurement. A target observation must arrive before computing forecast error.
 5. Explain a response to a monitoring alert, including investigation, validation and a controlled reload or deployment. A distribution change alone need not trigger automatic retraining.
 6. Describe feature stores conceptually unless an implementation already exists and materially helps the example.
+7. Use the same running example. Parts 1 and 2 use the electricity model `models:/electricity-mt158-lecture@champion`; the Part 3 storyboard draft uses an illustrative churn model (`models:/churn@champion`). Either switch Part 3's examples to the electricity model or say explicitly at the handoff that Part 3 uses a separate illustrative example.
 
 These are discussion points, not a claim that Presenter 3's section or a serving system has been implemented.
 
@@ -102,7 +103,7 @@ These are discussion points, not a claim that Presenter 3's section or a serving
 | 48:00–70:00 | Presenter 3 | Finish model use, monitoring and lifecycle response |
 | 70:00–75:00 | All | Questions |
 
-For Presenter 1, finish slide 2 by minute 7, slide 5 by 13, slide 8 by 20 and slide 10 by 23. For Presenter 2, finish slide 4 by minute 8:00, slide 7 by 14:30, slide 10 by 22:00 and slide 11 by 25:00. The notes allocate time for explanation, pointing at real UI elements and short audience prompts. Measure the actual delivery rather than treating a word count as a timing guarantee.
+For Presenter 1, finish slide 2 by minute 6:30, slide 5 by 12:30, slide 8 by 20 and slide 10 by 23. For Presenter 2, finish slide 4 by minute 7:30, slide 8 by 15:30, slide 11 by 22:30 and slide 12 by 25:00. The notes allocate time for explanation, pointing at real UI elements and short audience prompts. Measure the actual delivery rather than treating a word count as a timing guarantee.
 
 Run the rehearsal with the actual deck, display scale and slide order. One teammate should record the end time of each section. Note terminology mismatches and claims that depend on an unimplemented feature. Rehearse the transitions without a new introduction: the Part 2 opener stays on screen only during the handoff line (hide it if the combined deck has its own divider).
 

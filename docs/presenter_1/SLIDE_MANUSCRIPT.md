@@ -51,7 +51,7 @@ Transition: "The first fix is structural: where does the code live?"
 
 ## Slide 02: Library first: notebooks and scripts are thin clients
 
-**Time:** 4 min
+**Time:** 3.5 min
 
 ### On slide
 
@@ -67,7 +67,7 @@ Transition: "The first fix is structural: where does the code live?"
 
 ### Speaker notes
 
-Timing 3:00-7:00.
+Timing 3:00-6:30.
 
 [Left] This is the real layout of our reproducible project. The logic lives in one installable package under src: data preparation, features, evaluation splits, the model pipeline, evaluation and training, each a small module with one responsibility. Configuration, tests, the exploration notebook and data pointers each have their own place.
 
@@ -100,7 +100,7 @@ Transition: "Let us start with preprocessing."
 
 ### Speaker notes
 
-Timing 7:00-9:00.
+Timing 6:30-8:30.
 
 [Left] The notebook saved a dictionary: the model, the scaler and the column list. Every consumer has to know that recipe and apply it in the right order. Forget the scaler and you get confident nonsense, without any error.
 
@@ -134,7 +134,7 @@ Transition: "But our model's inputs are themselves computed features. Who builds
 
 ### Speaker notes
 
-Timing 9:00-11:00.
+Timing 8:30-10:30.
 
 Our features are lags and rolling means of past load. They are computed before the pipeline, so the question is where that code lives at prediction time.
 
@@ -170,7 +170,7 @@ src/electricity_demo/features.py; tests/test_features.py.
 
 ### Speaker notes
 
-Timing 11:00-13:00.
+Timing 10:30-12:30.
 
 [Left] pyproject.toml declares three different audiences. The package's own dependencies are only what is needed to build features and predict: pandas, NumPy, scikit-learn and PyYAML. MLflow is an optional extra for whoever loads models from the registry. Training tools such as plotting, console output and DVC are a development group: a developer gets them with uv sync, but an application that installs the package does not drag them along.
 
@@ -206,7 +206,7 @@ Transition: "Packages are pinned. What about the values we used to type into cel
 
 ### Speaker notes
 
-Timing 13:00-15:00.
+Timing 12:30-14:30.
 
 [Left] Every setting that the notebook typed into cells now lives in one YAML file: the seed, the dataset version, feature definitions, the evaluation design and the model settings. Running a different experiment means passing a different file.
 
@@ -224,41 +224,46 @@ Transition: "The last input to pin is the data itself."
 
 configs/random_forest.yaml; config.load_training_config; train.save_run.
 
-## Slide 07: Data identity: which data trained this model?
+## Slide 07: Version control: code in Git, data by hash
 
-**Time:** 1 min
+**Time:** 1.5 min
 
 ### On slide
 
-- Raw data stays untouched; every derived file is identified by its hash.
+- Git holds everything small and reviewable; large data is identified, not committed.
 - Raw UCI archive
 - never modified
 - prepare.py
 - aggregate, validate
 - hourly.csv + manifest.json
-- source hash, rules, output hash
+- source and output hashes
 - .dvc pointer in Git
-- content in DVC storage
-- Training refuses data that does not match its manifest. Tested by test_unrecorded_data_change_is_rejected.
-- Git versions the pointer, DVC stores the bytes. The run manifest records the hash, so a result can name its exact data.
+- bytes in DVC storage
+- IN GIT
+- src/ and tests/, configs/*.yaml, pyproject.toml and uv.lock, .dvc pointers, CI workflow
+- NOT IN GIT (.GITIGNORE)
+- Data files, fitted models, outputs/ run folders, .venv, MLflow store. They are reproduced or restored, and identified by hash.
+- Workflow: branch, pull request, CI runs the tests, a teammate reviews, then merge. Training refuses data that does not match its manifest.
 
 ### Speaker notes
 
-Timing 15:00-16:00.
+Timing 14:30-16:00.
 
 Keep this short; the point is the principle.
 
-[Flow] The raw archive is never edited. A preparation step aggregates and validates it, and writes the prepared file together with a manifest of hashes and preparation rules. DVC stores the file contents; Git stores only a small pointer. Restoring an older data version means checking out an older pointer.
+[Top] The raw archive is never edited. A preparation step aggregates and validates it, and writes the prepared file together with a manifest of hashes. DVC stores the file contents; Git stores only a small pointer. Restoring an older data version means checking out an older pointer.
 
-[Middle] Training compares the data with its manifest and refuses to run on a file that was changed by hand. Compare that with the notebook cell that rewrote its own CSV.
+[Left and right] The rule for Git: commit what is small, textual and reviewable: code, tests, configs, pyproject and the lockfile, the data pointers and the CI workflow. Do not commit data, fitted models, run outputs, environments or the MLflow store; those are reproduced or restored, and identified by their hashes. The .gitignore makes that rule automatic.
 
-[Bottom] Every run then records the data hash. That is what lets Part 2 say exactly which data a tracked model was trained on.
+[Bottom] Changes go through a branch and a pull request: CI runs the tests, a teammate reviews, then it merges. That is how a team keeps the training code correct. And training compares the data with its manifest and refuses a file that was changed by hand, unlike the notebook cell that rewrote its own CSV.
+
+Every run records the commit and the data hash. That is what lets Part 2 say exactly which code and data produced a model.
 
 Transition: "With code, environment, configuration and data under control, how do we know the code is still correct after the next change?"
 
 ### Sources (not spoken)
 
-prepare.py; data/README.md; experiments/README.md; tests/test_data.py.
+prepare.py; data/README.md; experiments/README.md; .gitignore files; .github/workflows/tests.yml; tests/test_data.py.
 
 ## Slide 08: Testing ML code: contracts, not accuracy
 
@@ -324,23 +329,23 @@ Every run writes its own folder with a unique ID: the resolved configuration, me
 
 Nothing depends on cell order or on someone remembering a manual step. That is what lets CI or a scheduler retrain the model later.
 
-Transition: "So after a week of experiments, what do we have?"
+Transition: "So after a few experiments, what do we have?"
 
 ### Sources (not spoken)
 
 train.py (load_development, fit_and_evaluate, save_run); outputs/<run-id>/.
 
-## Slide 10: A week later: seven run folders
+## Slide 10: A few experiments later: a folder of runs
 
 **Time:** 1 min
 
 ### On slide
 
 - We have reproducible runs. We do not yet have a way to manage them.
-- 2026-11-12_17-40-17Z_ridge_v1_760c2f/
-- 2026-11-12_17-42-27Z_random_forest_v1_1ea427/
-- 2026-11-12_18-19-54Z_ridge_v1_e7f336/
-- 2026-11-12_18-21-13Z_random_forest_v1_cf4f24/
+- 2026-11-13_22-13-12Z_ridge_v1_87e9e4/
+- 2026-11-13_22-13-27Z_random_forest_v1_74ded3/
+- 2026-11-13_22-13-46Z_ridge_v1_b21b7d/
+- 2026-11-13_22-14-53Z_random_forest_v1_8db6c5/
 - …  and comparison.md, written by our own report.py
 - This works for one person on one laptop. How does a team compare hundreds of runs, and find the exact model an application should use?
 - Part 2: experiment tracking and model management
@@ -349,7 +354,7 @@ train.py (load_development, fit_and_evaluate, save_run); outputs/<run-id>/.
 
 Timing 22:00-23:00.
 
-[Left] After a week of experiments we have reproducible runs, each in its own folder, and a comparison report that we wrote ourselves.
+[Left] After a few experiments we have reproducible runs, each in its own folder, and a comparison report that we wrote ourselves.
 
 [Right] For one person that is enough. For a team it is not: you cannot search someone else's laptop, and nobody knows which of these models an application should load.
 

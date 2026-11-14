@@ -81,6 +81,8 @@ Add `tags.run_kind = 'study'`, `'trial'` or `'baseline'` to select roles, and `t
 | Logged model `forecast_pipeline` | Signature, input example, environment, `model_checks.json` | Fitted scaling + calendar encoding + estimator; input is 29 engineered features, raw history goes through `features.build_next_features` |
 | Registered model | Versions, `champion`, source runs, `selected_trial_run_id` tag | Registration is not approval or deployment; version numbers depend on registry history |
 
+To reproduce the chart views on the slides, open the experiment's chart view (the chart icon next to the run table), filter to the batch, and use **Add chart**: a line chart of `fold_mae_kw` for the parents and baseline, a line chart of `trial_objective_mae_kw` and `best_so_far_mae_kw` on the forest parent, and parallel coordinates of `model.max_depth`, `model.min_samples_leaf`, `model.max_features` against `cv_mae_kw` for the forest trials. `scripts/capture_mlflow_screenshots.py` does this automatically.
+
 Details worth stating accurately:
 
 - `cv_rmse_kw` is pooled over validation predictions; `mean_rmse_kw` in `cv_results.csv` averages fold RMSEs and can differ.
