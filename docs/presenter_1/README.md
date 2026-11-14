@@ -12,7 +12,7 @@ The audience already knows modelling, cross-validation and leakage. This section
 | 2. Library first: notebooks and scripts are thin clients | 3–6.5 | One package; notebook, CLI, tests and tracking call it | `src/electricity_demo/` layout |
 | 3. Keep fitted preprocessing with the model | 6.5–8.5 | One fitted object from features to predictions | `pipeline.py` vs notebook bundle |
 | 4. One feature definition for training and inference | 8.5–10.5 | Avoid training-serving skew | `features.feature_table`, parity test |
-| 5. Dependencies: consumer vs training | 10.5–12.5 | Declare, lock, separate runtime from training tools; limits of a lockfile | `pyproject.toml`, `uv.lock` |
+| 5. Dependencies: consumer vs training | 10.5–12.5 | Declare, lock, separate runtime from training tools; limits of a lockfile; containers for the OS layer | `pyproject.toml`, `uv.lock` |
 | 6. Configuration instead of hard-coded values | 12.5–14.5 | Validated, versioned config saved with every run | `configs/*.yaml`, `config.load_training_config` |
 | 7. Version control: code in Git, data by hash | 14.5–16 | What goes in Git vs not; pull requests with CI and review; immutable raw data, hash manifest, DVC pointer | `.gitignore` files, `prepare.py`, `data/README.md` |
 | 8. Testing ML code: contracts, not accuracy | 16–20 | What to test; CI; tests vs quality gates | `tests/`, `.github/workflows/tests.yml` |

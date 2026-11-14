@@ -165,7 +165,7 @@ src/electricity_demo/features.py; tests/test_features.py.
 - Installs exactly the lock; fails if it is out of date
 - uv run --locked …
 - Every command runs in that same environment
-- A lockfile does not pin the data, uncommitted code, OS and numerical libraries, or unseeded randomness.
+- A lockfile does not pin the data, uncommitted code, OS and system libraries, or unseeded randomness. / OS layer: a container image (e.g. Docker) built from the same lockfile.
 - A consumer installs the package without training tools; a developer gets everything with uv sync.
 
 ### Speaker notes
@@ -176,7 +176,7 @@ Timing 10:30-12:30.
 
 [Right] uv lock resolves exact versions of every package, including indirect ones, and we commit that file. uv sync with --locked installs exactly that environment and refuses to continue if the lock no longer matches pyproject. uv run makes every command, tests included, use the same environment, on a laptop or in CI.
 
-[Bottom right] The honest limit: a lockfile pins Python packages. It does not pin the data, code you have not committed, the operating system and numerical libraries underneath, or randomness you did not seed. Those need the other practices in this section.
+[Bottom right] The honest limit: a lockfile pins Python packages. It does not pin the data, code you have not committed, the operating system and numerical libraries underneath, or randomness you did not seed. Those need the other practices in this section. For the operating system and system libraries, teams build a container image, for example with Docker, that installs from the same lockfile, so training and serving run in an identical environment on any machine. We do not build one here; Presenter 3 comes back to containers for serving.
 
 Transition: "Packages are pinned. What about the values we used to type into cells?"
 
