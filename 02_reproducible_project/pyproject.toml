@@ -15,7 +15,7 @@ dependencies = [
   "matplotlib>=3.9,<4",
   "pyyaml>=6,<7",
   "joblib>=1.4,<2",
-  "dvc>=3.60,<4",
+  "dvc[gs]>=3.60,<4",
   "rich>=13,<16",
 ]
 

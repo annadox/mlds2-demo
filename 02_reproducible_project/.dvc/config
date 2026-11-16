@@ -2,5 +2,8 @@
     site_cache_dir = .dvc/tmp/site-cache
     autostage = false
     analytics = false
+    remote = gcs
 [cache]
     type = copy
+['remote "gcs"']
+    url = gs://mlds2-demo/dvc

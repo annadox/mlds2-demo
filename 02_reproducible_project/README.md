@@ -105,6 +105,8 @@ The notebook calls project functions and the same training entry point used by t
 
 See [experiments/README.md](experiments/README.md) for v1 -> v2 -> v1 recovery, the exact simulated correction, and remote storage instructions. The raw ZIP remains untouched. Preparation is deterministic, but a URL can change: the recorded source hash and recoverable DVC object identify the actual bytes used. Retain the cache or push it to durable storage.
 
+The default DVC remote is `gs://mlds2-demo/dvc`. Google Cloud Storage support is included through `dvc[gs]`. On each local workstation, use `gcloud auth application-default login` with an account that can access the bucket, then use the normal locked DVC push/pull commands. Credentials remain outside Git; the remote URL is shared in `.dvc/config`.
+
 ## Verification
 
 ```powershell

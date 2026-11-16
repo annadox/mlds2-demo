@@ -2,7 +2,7 @@
 
 ## Notebook
 
-Open `01_notebook/electricity_forecasting.ipynb` with a Python kernel containing pandas, scikit-learn, matplotlib and PyTorch. Run from the notebook's directory. The first execution downloads the source archive and creates `electricity.csv`; subsequent executions reuse that local file.
+Open `01_notebook/electricity_forecasting.ipynb` with a Python kernel containing pandas, scikit-learn and matplotlib. Run from the notebook's directory. The first execution downloads the source archive and creates `electricity.csv`; subsequent executions reuse that local file.
 
 The notebook contains data loading, hourly aggregation, exploration, lag and rolling features, and separate training cells for Ridge and random forest. It reads and writes its own files independently of the packaged project.
 
@@ -68,3 +68,7 @@ uv run --locked dvc status
 ```
 
 Recorded validation results are in [experiments/verification.md](02_reproducible_project/experiments/verification.md). Retain the local DVC cache or push both versions to persistent storage before moving machines.
+
+## Google Cloud Storage
+
+The default remote is `gs://mlds2-demo/dvc`. After `gcloud auth application-default login`, run `uv run --locked dvc push` to upload the active tracked data or `uv run --locked dvc pull` to restore it. See [snapshot management](02_reproducible_project/experiments/README.md) for pushing both dataset versions. Uploads and downloads use the Cloud Storage API directly; no Google Drive OAuth client, custom helper or synced folder is required.

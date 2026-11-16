@@ -41,15 +41,23 @@ Restore v1 afterwards using the helper. Do not use `--force` to bypass unknown l
 
 ## Sharing and Git history
 
+The default remote `gcs` is `gs://mlds2-demo/dvc`. DVC transfers tracked data directly through Google Cloud Storage using the `dvc[gs]` backend included in the locked environment. There is no manual upload or desktop synchronization step.
+
+For local development, authorize the Google Cloud SDK once from your own terminal:
+
+```powershell
+gcloud auth application-default login
+```
+
+Use an account with the required bucket access. Application Default Credentials are separate from a regular `gcloud auth login`. Other users need read access to pull from a private bucket and their own authentication; anonymous access is not configured. Bucket permissions are not changed by configuring this remote.
+
 Commit the source, lockfile, configuration, `.dvc` configuration, generated data `.gitignore` files, `.dvc` pointers, and small `experiments/snapshots/` catalog. Do not commit CSV/ZIP contents, the environment, run outputs or `.dvc/cache`.
 
 Commit the dataset and preparation-manifest pointers together when recording a version in Git. To recover a historical state, restore both pointers from the selected revision and run `dvc checkout`. The saved catalog also allows selecting a dataset version independently of the code revision.
 
-Local cache is ready for one-machine offline use, not durable shared storage. To share both catalogued data versions, configure a persistent remote, then upload each pointer state:
+To upload both catalogued versions to the configured bucket, push each pointer state. A normal push covers the currently selected pointers:
 
 ```powershell
-# Replace the path with your own durable directory or supported shared storage.
-uv run --locked dvc remote add -d storage D:/your-persistent-dvc-store
 uv run --locked dvc push data/raw/LD2011_2014.txt.zip.dvc
 uv run --locked python -m electricity_demo.snapshots restore v1
 uv run --locked dvc push data/prepared/hourly.csv.dvc data/prepared/manifest.json.dvc
@@ -58,4 +66,4 @@ uv run --locked dvc push data/prepared/hourly.csv.dvc data/prepared/manifest.jso
 uv run --locked python -m electricity_demo.snapshots restore v1
 ```
 
-Push the Git metadata separately. On another machine, pull v1 normally. To restore v2 when it is not cached yet, select the v2 pointers using the manual `Copy-Item` commands above and run `dvc pull` for both prepared pointers before using the restore helper. Avoid garbage-collecting catalogued versions: DVC GC does not automatically recognize arbitrary saved pointer copies as historical Git references.
+Push the Git metadata separately. On another machine, run `uv sync --locked`, authenticate as above, and run `uv run --locked dvc pull` from this directory to restore the current v1 pointers' contents. To restore v2 when it is not cached yet, select the v2 pointers using the manual `Copy-Item` commands above and run `dvc pull` for both prepared pointers before using the restore helper. Avoid garbage-collecting catalogued versions: DVC GC does not automatically recognize arbitrary saved pointer copies as historical Git references.

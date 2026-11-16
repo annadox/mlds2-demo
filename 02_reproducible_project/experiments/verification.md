@@ -35,3 +35,13 @@ These results come from the earlier verification with the same feature values an
 The earlier v1/v2/v1 DVC restore verification reproduced restored-v1 predictions. The source/prepared data and snapshot pointers were not changed by the two-model simplification. Prepared v1 SHA-256 is `06e155b416659aa93e510a6d233a637baee5f65970830c5715ce2f796b2733ea`; synthetic v2 SHA-256 is `a9171f44ae9891b5145bb60fa30f5954bd7cc1fe621052f4519f185f30fa1b3a`. Both snapshots remain cached; v1 remains active.
 
 Historical generated artifacts for retired model types were moved into `01_notebook/archive/` and `outputs/archive/` rather than deleted. Active reports include only Ridge and random forest. Historical run records stay unchanged; they are excluded from current comparisons.
+
+## Google Cloud Storage recovery — 12 November 2026
+
+- Configured the default DVC remote `gcs` at `gs://mlds2-demo/dvc`, using `dvc[gs]` and the user's Google Cloud Application Default Credentials.
+- Uploaded five data objects: the original UCI ZIP, v1 CSV/manifest, and v2 CSV/manifest. Both snapshots were pushed explicitly; uploading only the active pointers would not retain both versions remotely.
+- Created an isolated DVC project with an initially empty cache and pulled the raw archive and v1 from the bucket. Selected the v2 pointers and pulled v2 into that independent project.
+- Recovered CSV and preparation-manifest SHA-256 values matched both saved snapshot descriptors. The downloaded raw archive's MD5 matched its checked-in DVC pointer.
+- The main workspace remains on v1, with its data and active pointers unchanged by the recovery test. Credentials were not copied into Git or shared.
+
+The local receipt is [outputs/gcs_verification.json](../outputs/gcs_verification.json). Collaborators need the updated remote configuration/dependencies committed to the shared Git repository, read access to the bucket, and their own authentication for this private-access setup. Bucket sharing permissions were not changed.

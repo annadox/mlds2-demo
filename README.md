@@ -15,6 +15,6 @@ See [workflow.md](workflow.md) for setup, training, dataset version recovery and
 
 The notebook requires pandas, scikit-learn and matplotlib. Open it with a Python kernel whose working directory is `01_notebook`; package installation instructions are included in the notebook. Its CSV/ZIP/model/plot files are generated locally and ignored by Git.
 
-The reproducible project uses DVC pointers to track source and prepared data. Dataset contents, environments, caches and generated models remain outside ordinary Git history. Configure a persistent DVC remote before sharing data across machines.
+The reproducible project uses DVC pointers to track source and prepared data. Dataset contents, environments, caches and generated models remain outside ordinary Git history. The configured remote is `gs://mlds2-demo/dvc`; see [snapshot management](02_reproducible_project/experiments/README.md) for authentication and uploading/recovering data versions.
 
 Dataset: Artur Trindade (2015), [ElectricityLoadDiagrams20112014](https://doi.org/10.24432/C58C86), UCI Machine Learning Repository, CC BY 4.0. The additional v2 snapshot is a synthetic sensitivity scenario, not an upstream dataset revision.
