@@ -1,0 +1,104 @@
+{
+  "batch_id": "20261113T221340Z-4f68dd",
+  "executed_on": "2026-11-13",
+  "source_commit": "64ec6b2f04c83c568a43469bc0bd773946b2caba",
+  "source_dirty": false,
+  "experiment": "electricity-mt158-lecture",
+  "comparison_group": "0b86a7bd8ec082d8ba2209b70385b0c373b1facbb62cb47228d382d7396c8170",
+  "receipt": "02_reproducible_project/outputs/lecture_latest.json",
+  "evidence_dir": "02_reproducible_project/outputs/lecture-20261113T221340Z-4f68dd",
+  "baseline": {
+    "run_id": "4d6b6826f83c42b5a26a3d9128aeb502",
+    "cv_mae_kw": 30.123865360539977,
+    "cv_rmse_kw": 44.60590914134823,
+    "fold_mae_kw": [
+      27.058495273112506,
+      29.96044014196518,
+      33.35266066654226
+    ]
+  },
+  "models": [
+    {
+      "label": "Ridge (grid)",
+      "run_id": "54657465dc34459a86bff855c19345ac",
+      "model_id": "m-aa73150b27f6419b8fc76531ce118290",
+      "registered_version": "1",
+      "cv_mae_kw": 9.662932402877162,
+      "cv_rmse_kw": 13.501329336169958,
+      "fold_mae_kw": [
+        8.39310078013852,
+        8.690177039149132,
+        11.905519389343837
+      ],
+      "output_dir": "02_reproducible_project/outputs/2026-11-13_22-13-46Z_ridge_v1_b21b7d",
+      "selected_trial": 2,
+      "selected_trial_run_id": "23c3d2e3c5764699a5201b825af03002",
+      "selected_params": {
+        "alpha": 10.0
+      }
+    },
+    {
+      "label": "Random forest (Optuna)",
+      "run_id": "e90482dae66c49d5a503ab2c20190d0e",
+      "model_id": "m-cca3bfbc5a8b4a1d975c67f03324699e",
+      "registered_version": "2",
+      "cv_mae_kw": 8.390399519597945,
+      "cv_rmse_kw": 13.14625813099267,
+      "fold_mae_kw": [
+        6.786902928494065,
+        7.9508564103950405,
+        10.433439219904729
+      ],
+      "output_dir": "02_reproducible_project/outputs/2026-11-13_22-14-53Z_random_forest_v1_8db6c5",
+      "selected_trial": 9,
+      "selected_trial_run_id": "59ae5bcfd2804f01839d458da1fe985e",
+      "selected_params": {
+        "max_depth": 15,
+        "max_features": 0.6,
+        "min_samples_leaf": 7
+      }
+    }
+  ],
+  "prediction": {
+    "model_uri": "models:/electricity-mt158-lecture/2",
+    "predicted_kw": 131.9840938586937,
+    "prediction_origin": "2014-11-01T00:00:00",
+    "requested_alias": "champion",
+    "source_run_id": "e90482dae66c49d5a503ab2c20190d0e",
+    "target_timestamp": "2014-11-01T01:00:00",
+    "timestamp_policy": "source Portuguese wall clock"
+  },
+  "rollback_prediction": {
+    "model_uri": "models:/electricity-mt158-lecture/1",
+    "predicted_kw": 124.62356745881132,
+    "prediction_origin": "2014-11-01T00:00:00",
+    "requested_alias": "champion",
+    "source_run_id": "54657465dc34459a86bff855c19345ac",
+    "target_timestamp": "2014-11-01T01:00:00",
+    "timestamp_policy": "source Portuguese wall clock"
+  },
+  "alias_events": [
+    {
+      "previous_version": null,
+      "new_version": "2",
+      "source_run_id": "e90482dae66c49d5a503ab2c20190d0e",
+      "reason": "Lowest development CV MAE among compatible completed model runs, with an improvement over the baseline."
+    },
+    {
+      "previous_version": 2,
+      "new_version": "1",
+      "source_run_id": "54657465dc34459a86bff855c19345ac",
+      "reason": "Illustrative local rollback to a comparison version; no production service exists."
+    },
+    {
+      "previous_version": 1,
+      "new_version": "2",
+      "source_run_id": "e90482dae66c49d5a503ab2c20190d0e",
+      "reason": "Restore the validation-selected champion after the local rollback illustration."
+    }
+  ],
+  "ui_screenshots": "docs/presenter_2/assets/mlflow_screenshots/ (MLflow 3.18.0 views and charts, captured 2026-11-13/14 with scripts/capture_mlflow_screenshots.py)",
+  "asset_sha256": {
+    "random_forest_forecast.png": "713c1da340b9fac7ae1daf977895b46b7a5cc580b4b7615fcc4a18ed9403d29b"
+  }
+}

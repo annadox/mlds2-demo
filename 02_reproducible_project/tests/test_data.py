@@ -19,7 +19,7 @@ def test_hourly_mean_and_interval_end_are_explicit():
     assert hourly["timestamp"].tolist() == [pd.Timestamp("2014-01-01T01:00:00"), pd.Timestamp("2014-01-01T02:00:00")]
 
 
-@pytest.mark.parametrize("problem", ["duplicate", "gap", "negative", "nonfinite", "unsorted"])
+@pytest.mark.parametrize("problem", ["duplicate", "gap", "negative", "nonfinite", "unsorted", "off_hour"])
 def test_invalid_hourly_data_is_rejected(hourly_frame, problem):
     frame = hourly_frame.copy()
     if problem == "duplicate":
@@ -30,6 +30,8 @@ def test_invalid_hourly_data_is_rejected(hourly_frame, problem):
         frame.loc[1, "load_kw"] = -1
     elif problem == "nonfinite":
         frame.loc[1, "load_kw"] = float("inf")
+    elif problem == "off_hour":
+        frame["timestamp"] += pd.Timedelta(minutes=30)
     else:
         frame = frame.iloc[::-1]
     with pytest.raises(ValueError):

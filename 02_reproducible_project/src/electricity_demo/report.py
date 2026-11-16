@@ -48,6 +48,14 @@ def metric_rows(metrics: dict) -> list[list[str]]:
 METRIC_HEADERS = ["Evaluation", "MAE (kW)", "RMSE (kW)", "Baseline MAE (kW)", "MAE reduction"]
 
 
+def fitted_parameters(manifest: dict, metrics: dict) -> dict:
+    """Resolve the estimator settings after any training-time grid search."""
+    return {
+        **manifest["model_config"].get("params", {}),
+        **{name.removeprefix("model__"): value for name, value in metrics.get("best_params", {}).items()},
+    }
+
+
 def write_run_summary(destination: Path, config: dict, metrics: dict, manifest: dict, search_results: pd.DataFrame) -> None:
     model_name = MODEL_NAMES[config["model"]["type"]]
     title = f"{model_name} · {manifest['dataset']['preparation'].get('snapshot', 'dataset')}"
@@ -113,7 +121,9 @@ def update_comparison(output_root: Path) -> pd.DataFrame:
             continue
         key = manifest["model_type"]
         previous = latest.get(key)
-        if previous is not None and previous[1].get("final_test_evaluated") and not metrics.get("final_test_evaluated") and previous[0]["model_config"] == manifest["model_config"]:
+        if (previous is not None and previous[1].get("final_test_evaluated")
+                and not metrics.get("final_test_evaluated")
+                and fitted_parameters(previous[0], previous[1]) == fitted_parameters(manifest, metrics)):
             continue
         latest[key] = (manifest, metrics, folder)
     rows = []

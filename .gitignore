@@ -12,3 +12,5 @@
 
 
 presentation/
+# Local Claude Code launch configuration (machine-specific paths).
+.claude/

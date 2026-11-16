@@ -1,0 +1,20 @@
+# Run the project's tests on every push and pull request, exactly as a developer would locally.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 02_reproducible_project
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      # Python 3.12.1 comes from .python-version; --locked fails if uv.lock is out of date.
+      - run: uv sync --locked --extra tuning
+      # Synthetic fixtures only: no dataset download is needed.
+      - run: uv run --locked --extra tuning python -m pytest -q

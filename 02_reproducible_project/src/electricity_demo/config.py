@@ -4,13 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# Data, configs, outputs and the MLflow store live in the project checkout, not inside the
+# installed package. ELECTRICITY_DEMO_ROOT points an installed copy at a checkout; the default
+# is the source tree this module was imported from (the editable install `uv sync` creates).
+PROJECT_ROOT = Path(os.environ.get("ELECTRICITY_DEMO_ROOT") or Path(__file__).resolve().parents[2]).resolve()
 
 
 def project_path(value: str | Path) -> Path:

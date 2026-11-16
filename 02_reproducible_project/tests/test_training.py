@@ -25,7 +25,11 @@ def test_training_repeats_and_saved_pipeline_reproduces_predictions(training_con
     assert first != second
     first_predictions = pd.read_csv(first / "predictions.csv")
     second_predictions = pd.read_csv(second / "predictions.csv")
-    np.testing.assert_allclose(first_predictions["predicted_kw"], second_predictions["predicted_kw"], rtol=1e-10, atol=1e-10)
+    # Match the documented numerical reproducibility contract across platforms.
+    np.testing.assert_allclose(first_predictions["predicted_kw"], second_predictions["predicted_kw"], rtol=1e-9, atol=1e-9)
+    first_metrics = json.loads((first / "metrics.json").read_text())
+    second_metrics = json.loads((second / "metrics.json").read_text())
+    assert first_metrics["best_params"] == second_metrics["best_params"]
     with (first / "model.pkl").open("rb") as handle:
         saved = pickle.load(handle)
     config = load_training_config(training_config)
