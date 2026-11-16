@@ -21,6 +21,16 @@ The `.dvc/` project configuration is included already, so do **not** rerun `dvc 
 
 ## Train and compare
 
+For one complete experiment from Bash (including Git Bash on Windows), run from the repository root:
+
+```bash
+bash 02_reproducible_project/scripts/run_experiment.sh --config configs/ridge.yaml
+# Once the configuration is selected, include the reserved final test evaluation:
+bash 02_reproducible_project/scripts/run_experiment.sh --config configs/random_forest.yaml --final-test
+```
+
+The script installs the locked environment, validates and reuses the selected prepared dataset (including v2's June correction), builds causal features, performs chronological CV, refits and saves metrics, predictions, model and summary under the configured `output_dir`. If both prepared files are missing, it preprocesses the source archive using `configs/prepare.yaml`. Use `--reprepare` to rebuild original, uncorrected v1 data explicitly; this replaces the active prepared CSV and manifest, so use DVC to restore a selected version afterwards if needed. `--prepare-config PATH` selects another preparation config whose output and manifest must match the training config. Config paths are project-relative or absolute, and the script can be launched from any directory. It does not update DVC pointers or upload data. Run with `--help` for options.
+
 ```bash
 uv run --locked python -m electricity_demo.train --config configs/ridge.yaml
 uv run --locked python -m electricity_demo.train --config configs/random_forest.yaml
