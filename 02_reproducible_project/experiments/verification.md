@@ -46,4 +46,4 @@ Historical generated artifacts for retired model types were moved into `01_noteb
 - Recovered CSV and preparation-manifest SHA-256 values matched both saved snapshot descriptors. The downloaded raw archive's MD5 matched its checked-in DVC pointer.
 - The main workspace remains on v1, with its data and active pointers unchanged by the recovery test. Credentials were not copied into Git or shared.
 
-The local receipt is [outputs/gcs_verification.json](../outputs/gcs_verification.json). Collaborators need the updated remote configuration/dependencies committed to the shared Git repository, read access to the bucket, and their own authentication for this private-access setup. Bucket sharing permissions were not changed.
+The local receipt is `outputs/gcs_verification.json`. Collaborators need the updated remote configuration/dependencies committed to the shared Git repository, read access to the bucket, and their own authentication for this private-access setup. Bucket sharing permissions were not changed.

@@ -1,4 +1,4 @@
-"""Generate the complete Presenter 2 evidence batch: baseline, searches, selection, registry and alias change.
+"""Generate the complete MLflow demo batch: baseline, searches, selection, registry and alias change.
 
 Lecture orchestration, deliberately outside the reusable package. Run from 02_reproducible_project:
 

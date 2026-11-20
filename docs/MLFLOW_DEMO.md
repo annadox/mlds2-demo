@@ -1,8 +1,8 @@
 # MLflow demo: tracking, registry and model retrieval
 
-How MLflow is added to the existing electricity forecasting project, how to regenerate the evidence used in Presenter 2's slides, and how to read what the MLflow UI shows. The recorded IDs and scores of the batch used in the slides are in [MLFLOW_ENHANCED_RESULTS.md](MLFLOW_ENHANCED_RESULTS.md).
+How MLflow is added to the existing electricity forecasting project, how to regenerate the recorded results, and how to read what the MLflow UI shows. The recorded IDs and scores of the reference batch are in [MLFLOW_ENHANCED_RESULTS.md](MLFLOW_ENHANCED_RESULTS.md).
 
-MLflow wraps Presenter 1's training code; it does not replace it. Model, features, chronological folds and metrics come from the same `train` functions (`load_development`, `evaluate_candidate`, `fit_and_evaluate`, `save_run`); `train.py` itself never imports MLflow. MLflow records executions and gives the selected fitted pipeline a retrievable identity. No live training or service is needed on stage.
+MLflow wraps the existing training code from Part 1; it does not replace it. Model, features, chronological folds and metrics come from the same `train` functions (`load_development`, `evaluate_candidate`, `fit_and_evaluate`, `save_run`); `train.py` itself never imports MLflow. MLflow records executions and gives the selected fitted pipeline a retrievable identity.
 
 ## Setup
 
@@ -14,11 +14,11 @@ uv sync --locked --extra tuning
 uv run --locked --extra tuning python -m electricity_demo.prepare   # only on a fresh checkout
 ```
 
-Two optional extras exist: `tracking` (MLflow only) and `tuning` (MLflow + Optuna, needed for the lecture batch). Presenter 1's untracked commands work without either. Pass the same `--extra` on every `uv run`, otherwise uv re-syncs the environment without the optional packages. The lock resolves MLflow 3.18.0.
+Two optional extras exist: `tracking` (MLflow only) and `tuning` (MLflow + Optuna, needed for the full batch). The untracked Part 1 commands work without either. Pass the same `--extra` on every `uv run`, otherwise uv re-syncs the environment without the optional packages. The lock resolves MLflow 3.18.0.
 
 The store is local: SQLite at `.mlflow/mlflow.db`, artifacts under `.mlflow/artifacts`, both ignored by Git. Paths are absolute to this machine, so teammates should regenerate the workflow rather than copy the database.
 
-## Lecture workflow (used for the slides)
+## Full workflow
 
 ```bash
 uv run --locked --extra tuning python scripts/lecture_demo.py --demonstrate-rollback
@@ -74,7 +74,7 @@ Add `tags.run_kind = 'study'`, `'trial'` or `'baseline'` to select roles, and `t
 | Logged model `forecast_pipeline` | Signature, input example, environment, `model_checks.json` | Fitted scaling + calendar encoding + estimator; input is 29 engineered features, raw history goes through `features.build_next_features` |
 | Registered model | Versions, `champion`, source runs, `selected_trial_run_id` tag | Registration is not approval or deployment; version numbers depend on registry history |
 
-To reproduce the chart views on the slides, open the experiment's chart view (the chart icon next to the run table), filter to the batch, and use **Add chart**: a line chart of `fold_mae_kw` for the parents and baseline, a line chart of `trial_objective_mae_kw` and `best_so_far_mae_kw` on the forest parent, and parallel coordinates of `model.max_depth`, `model.min_samples_leaf`, `model.max_features` against `cv_mae_kw` for the forest trials. `scripts/capture_mlflow_screenshots.py` does this automatically.
+To reproduce the chart views, open the experiment's chart view (the chart icon next to the run table), filter to the batch, and use **Add chart**: a line chart of `fold_mae_kw` for the parents and baseline, a line chart of `trial_objective_mae_kw` and `best_so_far_mae_kw` on the forest parent, and parallel coordinates of `model.max_depth`, `model.min_samples_leaf`, `model.max_features` against `cv_mae_kw` for the forest trials.
 
 Details worth stating accurately:
 
@@ -94,7 +94,7 @@ Kept out to stay within the lecture's focus on experiment and model management:
 - Optuna pruning (`NopPruner`): temporal windows differ in difficulty and fits are small, so every trial completes all three folds.
 - Statistical nested CV: MLflow nesting organizes records; it is not an outer evaluation loop.
 - Study resume or distributed search: the Optuna study is persisted in SQLite for inspection only; each command starts a new study.
-- Automatic feature/parameter importance, serving platforms, monitoring suites, feature stores, containers, CI/CD and cloud deployment. Serving and monitoring belong to Presenter 3 and are discussed conceptually.
+- Automatic feature/parameter importance, serving platforms, monitoring suites, feature stores, containers, CI/CD and cloud deployment. Serving and monitoring are covered in [03_serving_monitoring](../03_serving_monitoring/README.md).
 - Deprecated registry stages (Staging/Production); aliases and versions are used instead.
 
 ## Tests

@@ -1,6 +1,6 @@
 # Recorded MLflow evidence
 
-The observed results behind both lecture decks. The full lecture workflow ran on 13 November 2026 on committed code (`64ec6b2`, `source_dirty: false`) with Python 3.12.1, MLflow 3.18.0 and the real UCI data, into a fresh MLflow store. How to regenerate and read this evidence is in [MLFLOW_DEMO.md](MLFLOW_DEMO.md). The earlier 12 November store and run folders were archived (not deleted) under `02_reproducible_project/.cache/archive-2026-11-12/`, which Git ignores.
+The recorded results of the Part 2 MLflow workflow. The full lecture workflow ran on 13 November 2026 on committed code (`64ec6b2`, `source_dirty: false`) with Python 3.12.1, MLflow 3.18.0 and the real UCI data, into a fresh MLflow store. How to regenerate and read this evidence is in [MLFLOW_DEMO.md](MLFLOW_DEMO.md). The earlier 12 November store and run folders were archived (not deleted) under `02_reproducible_project/.cache/archive-2026-11-12/`, which Git ignores.
 
 ## Exact batch and selection
 
@@ -47,12 +47,9 @@ Filter: `tags.lecture_batch = '20261113T221340Z-4f68dd' and attributes.status = 
 
 ## Model retrieval and alias illustration
 
-`champion` resolved to `models:/electricity-mt158-lecture/2`. Given 168 observed hours ending `2014-11-01T00:00:00`, it predicted **131.984094 kW** for `2014-11-01T01:00:00` (published Portuguese wall clock). The rollback illustration moved `champion` from version 2 to 1 and back; version 1 predicted 124.623567 kW for the same history, and restoring version 2 restored its original prediction. Events are in `evidence.json` and the runs' `registry_events/` artifacts. The consumption command and receipt are in [the team handoff](presenter_2/TEAM_HANDOFF_AND_REHEARSAL.md).
+`champion` resolved to `models:/electricity-mt158-lecture/2`. Given 168 observed hours ending `2014-11-01T00:00:00`, it predicted **131.984094 kW** for `2014-11-01T01:00:00` (published Portuguese wall clock). The rollback illustration moved `champion` from version 2 to 1 and back; version 1 predicted 124.623567 kW for the same history, and restoring version 2 restored its original prediction. Events are in `evidence.json` and the runs' `registry_events/` artifacts.
 
-## Figures and screenshots
-
-- Native MLflow UI screenshots of this batch: `docs/presenter_2/assets/mlflow_screenshots/` (runs, compare, run overview, run artifacts, logged model, registry, version) and MLflow's own charts: `folds.png` (fold_mae_kw per run by step), `search.png` (forest trial objective and best so far by trial) and `params.png` (parallel coordinates of the forest trials). Regenerate with `scripts/capture_mlflow_screenshots.py` against a running UI.
-- `docs/presenter_2/assets/all_trials.csv` (all 13 trials with settings and scores) and `random_forest_forecast.png` (one validation week of the selected forest, from its training run).
+## Generated files
 
 Generated outputs, models, data and SQLite stores are local and ignored by Git.
 

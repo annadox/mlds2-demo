@@ -12,6 +12,6 @@ random_forest:
     max_depth: {kind: int, low: 3, high: 16}
     min_samples_leaf: {kind: int, low: 1, high: 12}
     max_features: {kind: categorical, choices: [0.6, 1.0]}
-  # Include Presenter 1's existing forest as a known comparison configuration.
+  # Include the base random-forest configuration (configs/random_forest.yaml) as a known comparison.
   enqueue:
     - {max_depth: 10, min_samples_leaf: 3, max_features: 1.0}
